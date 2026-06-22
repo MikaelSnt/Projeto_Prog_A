@@ -1,6 +1,6 @@
 from tkinter import *
 from Figuras import *
-
+# Sempre Comentar as Atualizações para não se Perder.
 class Aplicativo:
     def __init__(self):
         self.figuras = []
