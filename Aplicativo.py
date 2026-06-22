@@ -22,27 +22,28 @@ class Aplicativo:
         frame_Menu.pack()
 
         self.tipo_figura = StringVar(value="Rabisco")
-        Menu_figura = OptionMenu(frame_Menu, self.tipo_figura, "Linha", "Retângulo", "Oval", "Círculo", "Rabisco", "Polígono")
+        self.tipo_figura.trace_add("write", self.Aparecer_menu_poligonos)
+        Menu_figura = OptionMenu(frame_Menu, self.tipo_figura, "Rabisco", "Linha", "Retângulo", "Oval", "Círculo", "Polígono")
         Menu_figura.grid(row=0, column=0)
 
         self.cor_borda = StringVar(value="black")
         Menu_Borda = OptionMenu(frame_Menu, self.cor_borda, "black", "blue", "green", "yellow", "purple")
-        Menu_Borda.grid(row=0, column=1)
+        Menu_Borda.grid(row=0, column=3)
         
         self.cor_preenchimento = StringVar(value="Black")
         Menu_preenchimento = OptionMenu(frame_Menu, self.cor_preenchimento, "black", "blue", "green", "yellow", "purple")
-        Menu_preenchimento.grid(row=0, column=2)
+        Menu_preenchimento.grid(row=0, column=4)
         
-        self.espessura = StringVar(value="5")
-        Menu_espessura = OptionMenu(frame_Menu, self.espessura, "1", "2", "3", "5", "10")
-        Menu_espessura.grid(row=0, column=3)
+        self.espessura = IntVar(value=5)
+        Menu_espessura = OptionMenu(frame_Menu, self.espessura, 1, 5, 10, 20, 30, 50)
+        Menu_espessura.grid(row=0, column=5)
 
-        self.menu_poly = StringVar(value=3)
-        Menu_poly = OptionMenu(frame_Menu, self.menu_poly, 3, 4, 5)
-        Menu_poly.grid_forget()
+        self.menu_poly = IntVar(value=3)
+        self.Menu_poly = OptionMenu(frame_Menu, self.menu_poly, 3, 4, 5, 6)
+        self.Menu_poly.grid_forget()
 
         Btn_limpar = Button(frame_Menu, text="Limpar",  command=self.limpar)
-        Btn_limpar.grid(row=0, column=4)
+        Btn_limpar.grid(row=0, column=6)
 
         self.canvas = Canvas(self.janela, bg="white",  width=800,  height=600 )
         self.canvas.pack()
@@ -52,23 +53,32 @@ class Aplicativo:
         self.canvas.bind("<ButtonPress-1>",  self.iniciar_desenho )
         self.canvas.bind("<B1-Motion>", self.atualizar_desenho)
         self.canvas.bind("<ButtonRelease-1>", self.finalizar_desenho)
-        
+    
+    def Aparecer_menu_poligonos(self, *Nome):
+        if self.tipo_figura.get() == "Polígono":
+            self.Menu_poly.grid(row=0, column=1)
+        else:
+            self.Menu_poly.grid_forget()
     def iniciar_desenho(self, event):
         self.inicio_x = event.x
         self.inicio_y = event.y
- 
-        if self.tipo_figura.get() == "Rabisco":
-            self.rabisco_atual = [(event.x, event.y)]
+
+        if self.tipo_figura.get() == "Rabisco" :
+            self.rabisco_atual = [event.x, event.y]
+
+        elif self.tipo_figura.get() == "Polígono":
+            self.desenhar_poligono(event)
+
     def atualizar_desenho(self, event):
         self.fim_x = event.x
         self.fim_y = event.y
     
-        if self.tipo_figura.get() == "Rabisco":
-            self.rabisco_atual.append( (event.x, event.y) )
+        if self.tipo_figura.get() == "Rabisco" and self.rabisco_atual != None:
+            self.rabisco_atual.extend([event.x, event.y])
         
             self.redesenhar()
-
-            self.canvas.create_line(self.rabisco_atual, fill=self.cor_preenchimento.get(), width=float(self.espessura.get()))
+            if len(self.rabisco_atual) >= 4:
+                self.canvas.create_line(self.rabisco_atual, fill=self.cor_preenchimento.get(), width=float(self.espessura.get()))
     
     def finalizar_desenho(self, event):
 
@@ -85,7 +95,8 @@ class Aplicativo:
 
 
         if tipo == "Rabisco":
-            figura_atual = Rabisco(cor_borda, espessura, cor_preenchimento, self.rabisco_atual)
+            if self.rabisco_atual and len(self.rabisco_atual) >= 4:
+                figura_atual = Rabisco(cor_borda, espessura, cor_preenchimento, self.rabisco_atual)
             self.rabisco_atual = None
 
         elif tipo == "Linha":
@@ -103,19 +114,19 @@ class Aplicativo:
             self.figuras.append(figura_atual)
         
         self.redesenhar()
-    
     def desenhar_poligono(self, event):
-        if len(self.pontos_poligono) < 6:
-            return 
         self.pontos_poligono.append(event.x)
         self.pontos_poligono.append(event.y)
-
-        figura_atual = Poligono(self.cor_borda.get(), float(self.espessura.get()), self.cor_preenchimento.get(), self.pontos_poligono)
+        
+        coordenadas = int(self.menu_poly.get()) * 2
+        
+        if len(self.pontos_poligono) < coordenadas:
+            return
+        
+        figura_atual = Poligono(self.cor_borda.get(), float(self.espessura.get()), self.cor_preenchimento.get(), self.pontos_poligono.copy())
         self.figuras.append(figura_atual)
-
-
+        self.pontos_poligono.clear()
         self.redesenhar()
-
     def redesenhar(self):
         self.canvas.delete("all")
         for figura_atual in self.figuras:

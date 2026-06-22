@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Figuras:
     cor_borda : str
@@ -14,9 +13,9 @@ class Figuras:
 @dataclass
 class Rabisco(Figuras):
     pontos : list
-    
     def desenhar(self, canvas):
-        canvas.create_line(self.pontos, fill=self.cor_preenchimento, width=self.espessura)
+        if len(self.pontos) >=2:
+            canvas.create_line(self.pontos, fill=self.cor_preenchimento, width=self.espessura)
 
 @dataclass
 class Linha(Figuras):
@@ -65,4 +64,3 @@ class Poligono(Figuras):
 
     def desenhar(self, canvas):
         canvas.create_polygon(self.pontos, outline=self.cor_borda, fill=self.cor_preenchimento, width=self.espessura)
-
