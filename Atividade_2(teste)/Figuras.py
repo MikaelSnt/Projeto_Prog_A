@@ -15,7 +15,7 @@ class Rabisco(Figuras):
     pontos : list
     def desenhar(self, canvas):
         if len(self.pontos) >=2:
-            canvas.create_line(self.pontos, fill=self.cor_borda, width=self.espessura)
+            canvas.create_line(self.pontos, fill=self.cor_preenchimento, width=self.espessura)
 
 @dataclass
 class Linha(Figuras):
