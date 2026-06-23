@@ -30,7 +30,7 @@ def atualizar_desenho(self, event):
         self.redesenhar()
 
         if len(self.rabisco_atual) >= 4:
-            self.canvas.create_line(self.rabisco_atual, fill=self.cor_borda.get(), width=float(self.espessura.get()))
+            self.canvas.create_line(self.rabisco_atual, fill=self.cor_preenchimento.get(), width=float(self.espessura.get()))
 
     elif tipo != "Polígono":
         self.redesenhar()

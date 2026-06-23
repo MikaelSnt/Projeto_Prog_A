@@ -33,8 +33,8 @@ def Menu(self):
     lbl_corborda = Label(frame_Menu,text= "Cor da borda: ")
     lbl_corborda.grid(row = 1,column= 3)
 
-    self.cor_preenchimento = StringVar(value="")
-    Menu_preenchimento = OptionMenu(frame_Menu, self.cor_preenchimento, "black", "blue", "green", "yellow", "purple")
+    self.cor_preenchimento = StringVar(value="black")
+    Menu_preenchimento = OptionMenu(frame_Menu, self.cor_preenchimento,"", "black", "blue", "green", "yellow", "purple")
     Menu_preenchimento.grid(row=1, column=2)
 
     lbl_preenchimento = Label(frame_Menu,text= "Cor do preenchimento")
@@ -48,7 +48,7 @@ def Menu(self):
     lbl_espessura.grid(row = 0 , column = 4)
 
     self.menu_poly = IntVar(value=3)
-    self.Menu_poly = OptionMenu(frame_Menu, self.menu_poly, 3, 4, 5, 6)
+    self.Menu_poly = OptionMenu(frame_Menu, self.menu_poly, 3, 4, 5, 6,8,10,12,16)
     self.Menu_poly.grid_forget()
 
     self.poly_pontos = Label(frame_Menu,text= "Pontos do Polígono:")

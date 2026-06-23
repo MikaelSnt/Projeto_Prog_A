@@ -4,7 +4,7 @@ def desenhar_poligono(self, event):
     self.pontos_poligono.append(event.x)
     self.pontos_poligono.append(event.y)
     
-    coordenadas = (int(self.menu_poly.get()) + 1) * 2
+    coordenadas = ((int(self.menu_poly.get())) +1) * 2
     
     if len(self.pontos_poligono) < coordenadas:
         return
