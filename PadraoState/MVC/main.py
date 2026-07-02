@@ -5,7 +5,6 @@ from view.visao import Visao
 from controller.controlador import Controlador
 
 janela = Tk()
-
 modelo = Modelo()
 visao = Visao(janela)
 controlador = Controlador(modelo, visao)

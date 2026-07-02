@@ -41,7 +41,6 @@ class Visao:
             self.frame_menu,
             self.menu_tamanho,
             "800 x 600",
-            "1280 x 600",
             "1920 x 1300"
         )
         self.menu_tam.grid(row=0, column=7)
@@ -103,11 +102,6 @@ class Visao:
             height=self.altura
         )
         self.canvas.pack()
-        
-
-        
-    
-
     def mostrar_menu_poligono(self):
         self.menu_poligono.grid(row=0, column=3)
         self.lbl_poligono.grid(row=0,column = 2)
