@@ -41,7 +41,6 @@ class Visao:
             self.frame_menu,
             self.menu_tamanho,
             "800 x 600",
-            "1280 x 600",
             "1920 x 1300"
         )
         self.menu_tam.grid(row=0, column=7)
@@ -62,7 +61,7 @@ class Visao:
         self.botao_preenchimento = Button(
                     self.frame_menu,
                     bg=self.cor_preenchimento.get(),width=3,
-                command=self.escolher_cor_borda
+                command=self.escolher_cor_preenchimento
                             )
         self.botao_preenchimento.grid(row=1, column=2)
         lbl_preenchimento = Label(self.frame_menu,text = "Cor do preenchimento: ")
@@ -103,11 +102,6 @@ class Visao:
             height=self.altura
         )
         self.canvas.pack()
-        
-
-        
-    
-
     def mostrar_menu_poligono(self):
         self.menu_poligono.grid(row=0, column=3)
         self.lbl_poligono.grid(row=0,column = 2)
@@ -120,7 +114,7 @@ class Visao:
         if cor:
             self.cor_borda.set(cor)
             self.botao_cor_borda.config(bg=cor)
-    def escolher_cor_borda(self):
+    def escolher_cor_preenchimento(self):
         cor = askcolor()[1]
 
         if cor:
