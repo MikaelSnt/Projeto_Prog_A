@@ -62,30 +62,6 @@ class Modelo:
         self.figuras = []
         self.pontos_poligonos = []
 
-    def criar_figuras(self, tipo, cor_borda, espessura, cor_preenchimento, x1, y1, x2, y2, rabisco = None):
-        figura = None
-
-        if tipo == "Rabisco":
-            if rabisco and len(rabisco) >= 4:
-                figura = Rabisco(cor_borda, espessura, cor_preenchimento, rabisco )
-
-        elif tipo == "Linha":
-            figura = Linha(cor_borda, espessura, cor_preenchimento, x1 , y1, x2, y2)
-
-        elif tipo == "Retângulo":
-            figura = Retangulo( cor_borda, espessura, cor_preenchimento,x1 , y1, x2, y2)
-
-        elif tipo == "Oval":
-            figura = Oval(cor_borda, espessura, cor_preenchimento, x1 , y1, x2, y2)
-            
-        elif tipo == "Círculo":
-            figura = Circulo(cor_borda, espessura, cor_preenchimento,x1 , y1, x2, y2)
-        
-        if figura:
-            self.figuras.append(figura)
-
-        return figura 
-    
     def adicionar_figura(self, figura):
         self.figuras.append(figura)        
 

@@ -16,6 +16,8 @@ class Ferramenta(ABC):
     def mouse_arrastado(self, event):
         self.figura = self.criar_figura(self.inicio_X, self.inicio_Y, event.x, event.y)
         self.controlador.redesenhar()
+        if self.figura:
+            self.figura.desenhar(self.controlador.visao.canvas)
 
     def mouse_solto(self, event):
         if self.figura:

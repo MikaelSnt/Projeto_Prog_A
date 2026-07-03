@@ -61,7 +61,7 @@ class Visao:
         self.botao_preenchimento = Button(
                     self.frame_menu,
                     bg=self.cor_preenchimento.get(),width=3,
-                command=self.escolher_cor_borda
+                command=self.escolher_cor_preenchimento
                             )
         self.botao_preenchimento.grid(row=1, column=2)
         lbl_preenchimento = Label(self.frame_menu,text = "Cor do preenchimento: ")
@@ -114,7 +114,7 @@ class Visao:
         if cor:
             self.cor_borda.set(cor)
             self.botao_cor_borda.config(bg=cor)
-    def escolher_cor_borda(self):
+    def escolher_cor_preenchimento(self):
         cor = askcolor()[1]
 
         if cor:

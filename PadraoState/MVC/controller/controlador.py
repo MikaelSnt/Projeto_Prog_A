@@ -6,13 +6,13 @@ from dataclasses import dataclass
 class Controlador:
     modelo: object 
     visao : object 
-    def __comecar__(self):         
-        self.ferramentas = {"Linha" : FerramentaCriar(self, Linha), 
-                       "Retângulo" : FerramentaCriar(self, Retangulo),
-                        "Oval" : FerramentaCriar(self, Retangulo),
-                        "Círculo": FerramentaCriar(self, Circulo) }
+    def __post_init__(self):         
+        self.ferramentas = {"Linha" : FerramentaCriar(self,classe_figura= Linha), 
+                       "Retângulo" : FerramentaCriar(self, classe_figura = Retangulo),
+                        "Oval" : FerramentaCriar(self,classe_figura= Oval),
+                        "Círculo": FerramentaCriar(self,classe_figura= Circulo) }
         
-        self.ferramentas = self.ferramentas["Linha"]
+        self.ferramenta = self.ferramentas["Linha"]
         self.rabisco_atual = None
         self.configurar_eventos()
         self.redesenhar()
