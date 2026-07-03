@@ -1,7 +1,6 @@
 from model.modelo import *
 from controller.FerramentasFiguras import * 
 from dataclasses import dataclass
-
 @dataclass
 class Controlador:
     modelo: object 
@@ -10,9 +9,11 @@ class Controlador:
         self.ferramentas = {"Linha" : FerramentaCriar(self,classe_figura= Linha), 
                        "Retângulo" : FerramentaCriar(self, classe_figura = Retangulo),
                         "Oval" : FerramentaCriar(self,classe_figura= Oval),
-                        "Círculo": FerramentaCriar(self,classe_figura= Circulo) }
+                        "Círculo": FerramentaCriar(self,classe_figura= Circulo),
+                        "Rabisco": FerramentaRabisco(self, classe_figura=Rabisco),
+                        "Polígono": FerramentaPoligono(self, classe_figura=Poligono)}
         
-        self.ferramenta = self.ferramentas["Linha"]
+        self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
         self.configurar_eventos()
         self.redesenhar()
@@ -37,10 +38,10 @@ class Controlador:
         self.visao.btn_limpar.config(
             command=self.limpar
         )
-
         self.atualizar_eventos()
 
     def atualizar_eventos(self):
+        self.visao.canvas.bind("<Double-Button-1>", self.ferramenta.mouse_duplo)
 
         self.visao.canvas.bind(
             "<ButtonPress-1>",
@@ -58,12 +59,9 @@ class Controlador:
         )
     def mudar_ferramenta(self, *args):
 
-        self.ferramenta = self.ferramentas.get(
-            self.visao.tipo_figura.get(),
-            self.ferramenta
-        )
-
+        self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
         self.atualizar_eventos()
+
     def mudar_tamanho(self, *args):
         tamanho = self.visao.menu_tamanho.get().split()
 

@@ -4,7 +4,7 @@ from tkinter.colorchooser import askcolor
 class Visao:
     def __init__(self, janela):
         self.janela = janela
-        self.janela.title("Aplicativo_Prog_A")
+        self.janela.title("Aplicativo_MMD")
 
         self.largura = 400
         self.altura = 400
