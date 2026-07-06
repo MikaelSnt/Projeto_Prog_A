@@ -17,6 +17,7 @@ class Controlador:
         
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
+        self.lista_ults = []
         self.configurar_eventos()
         self.redesenhar()
 
@@ -64,7 +65,12 @@ class Controlador:
             "<ButtonRelease-1>",
             self.ferramenta.mouse_solto
         )
-        self.visao.canvas.bind_all("<Control-z>",self.desfazer)
+        self.visao.canvas.bind_all(
+            "<Control-z>",
+            self.desfazer)
+        self.visao.canvas.bind_all(
+            "<Control-y>",
+            self.refazer)
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -118,7 +124,16 @@ class Controlador:
     def abrir(self):
         self.modelo.abrir_projeto()
         self.redesenhar()
+        
     def desfazer(self,event):
         lista_fig = self.modelo.figuras
-        lista_fig.pop()
+        self.ultimo = lista_fig.pop()
+        self.lista_ults.append(self.ultimo)
+        print(self.lista_ults)
+        self.redesenhar()
+        
+    def refazer(self,event):
+        control_y = self.lista_ults.pop()
+        print(self.lista_ults)
+        self.modelo.figuras.append(control_y)
         self.redesenhar()
