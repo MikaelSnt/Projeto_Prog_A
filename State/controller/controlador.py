@@ -1,6 +1,8 @@
 from model.modelo import *
 from controller.FerramentasFiguras import * 
 from dataclasses import dataclass
+
+
 @dataclass
 class Controlador:
     modelo: object 
@@ -34,6 +36,8 @@ class Controlador:
             "write",
             self.mudar_tamanho
         )
+        self.visao.bt_abrir.config(command=self.abrir)
+        self.visao.bt_salvar.config(command=self.salvar)
 
         self.visao.btn_limpar.config(
             command=self.limpar
@@ -41,7 +45,10 @@ class Controlador:
         self.atualizar_eventos()
 
     def atualizar_eventos(self):
-        self.visao.canvas.bind("<Double-Button-1>", self.ferramenta.mouse_duplo)
+        self.visao.canvas.bind(
+            "<Double-Button-1>",
+            self.ferramenta.mouse_duplo
+            )
 
         self.visao.canvas.bind(
             "<ButtonPress-1>",
@@ -57,6 +64,7 @@ class Controlador:
             "<ButtonRelease-1>",
             self.ferramenta.mouse_solto
         )
+        self.visao.canvas.bind_all("<Control-z>",self.desfazer)
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -70,7 +78,7 @@ class Controlador:
 
         self.visao.canvas.config(width=self.visao.largura, height=self.visao.altura)
         if self.visao.grade.get() == "Com grade":
-            self.exibir_grades()
+            self.redesenhar()
 
     def exibir_grades(self):
             linhas = self.modelo.criar_grade(self.visao.largura,self.visao.altura,10)
@@ -103,3 +111,14 @@ class Controlador:
         self.visao.canvas.delete("all")
         if self.visao.grade.get() == "Com grade":
             self.exibir_grades()
+    
+    def salvar(self):
+        self.modelo.salvar_projeto()
+    
+    def abrir(self):
+        self.modelo.abrir_projeto()
+        self.redesenhar()
+    def desfazer(self,event):
+        lista_fig = self.modelo.figuras
+        lista_fig.pop()
+        self.redesenhar()

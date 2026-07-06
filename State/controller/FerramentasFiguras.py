@@ -95,4 +95,3 @@ class FerramentaPoligono(Ferramenta):
         if self.figura:
                 self.figura.desenhar(self.controlador.visao.canvas)
 
-

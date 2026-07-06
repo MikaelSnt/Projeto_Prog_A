@@ -1,5 +1,9 @@
 from tkinter import *
 from tkinter.colorchooser import askcolor
+import tkinter as tk
+
+
+
 
 class Visao:
     def __init__(self, janela):
@@ -9,7 +13,7 @@ class Visao:
         self.largura = 400
         self.altura = 400
 
-        self.tipo_figura = StringVar(value="Rabisco")
+        self.tipo_figura = StringVar(value= "Rabisco")
         self.menu_tamanho = StringVar(value="Tamanho_do_Desenho")
         self.cor_borda = StringVar(value="black")
         self.cor_preenchimento = StringVar(value="black")
@@ -26,7 +30,7 @@ class Visao:
         self.menu_figura = OptionMenu(
             self.frame_menu,
             self.tipo_figura,
-            "Rabisco",
+           "Rabisco",
             "Linha",
             "Retângulo",
             "Oval",
@@ -41,8 +45,9 @@ class Visao:
             self.frame_menu,
             self.menu_tamanho,
             "800 x 600",
-            "1920 x 1300"
+            "1920 x 1300",
         )
+    
         self.menu_tam.grid(row=0, column=7)
         lbl_tamanho = Label(self.frame_menu,text = "Tamanho da tela: ")
         lbl_tamanho.grid(row = 0 , column= 6)
@@ -50,64 +55,58 @@ class Visao:
         self.botao_cor_borda = Button(
                     self.frame_menu,
                     bg=self.cor_borda.get(),width=3,
-                command=self.escolher_cor_borda
+                command=self.escolher_cor_borda,
+                relief=tk.RAISED,borderwidth=3
                             )
-
         self.botao_cor_borda.grid(row=1, column=4)
-        
         lbl_borda = Label(self.frame_menu,text = "Cor da Borda: ")
         lbl_borda.grid(row = 1 , column= 3)
 
         self.botao_preenchimento = Button(
                     self.frame_menu,
                     bg=self.cor_preenchimento.get(),width=3,
-                command=self.escolher_cor_preenchimento
+                command=self.escolher_cor_preenchimento,
+                relief=tk.RAISED,borderwidth=3
                             )
-        self.botao_preenchimento.grid(row=1, column=2)
+        self.botao_preenchimento.grid(row=1, column=1)
         lbl_preenchimento = Label(self.frame_menu,text = "Cor do preenchimento: ")
-        lbl_preenchimento.grid(row = 1 , column= 1)
+        lbl_preenchimento.grid(row = 1 , column= 0)
 
         self.menu_espessura = OptionMenu(
             self.frame_menu,
             self.espessura,
             1, 5, 10, 20, 30, 50
         )
-        self.menu_espessura.grid(row=0, column=5)
+        self.menu_espessura.grid(row=0, column=4)
         lbl_espessura = Label(self.frame_menu,text = "Espessura: ")
-        lbl_espessura.grid(row = 0 , column= 4)
-
-        self.menu_poligono = OptionMenu(
-            self.frame_menu,
-            self.menu_poly,
-            3, 4, 5, 6
-        )
-        self.lbl_poligono = Label(self.frame_menu,text="Pontos: ")
+        lbl_espessura.grid(row = 0 , column= 3)
 
         self.btn_limpar = Button(
             self.frame_menu,
-            text="Limpar"
+            text="Limpar",
+           activebackground="gray", activeforeground="white" 
         )
-        self.btn_limpar.grid(row=1, column=7)
-
+        self.btn_limpar.grid(row=1,column=7)
         self.menu_grade = OptionMenu(
             self.frame_menu,
             self.grade,
              "Sem grade","Com grade")
         self.menu_grade.grid(row=1,column=6)
+               
         
+        self.bt_abrir = tk.Button(self.frame_menu, text="Abrir Desenho")
+        self.bt_abrir.grid(row = 2 , column= 5)
+        self.bt_salvar =tk.Button(self.frame_menu, text="Salvar Desenho")
+        self.bt_salvar.grid(row = 2,column= 3)
+
         self.canvas = Canvas(
             self.janela,
             bg="white",
             width=self.largura,
             height=self.altura
+        
         )
         self.canvas.pack()
-    def mostrar_menu_poligono(self):
-        self.menu_poligono.grid(row=0, column=3)
-        self.lbl_poligono.grid(row=0,column = 2)
-    def esconder_menu_poligono(self):
-        self.menu_poligono.grid_forget()
-        self.lbl_poligono.grid_forget()
     def escolher_cor_borda(self):
         cor = askcolor()[1]
 
