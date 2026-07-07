@@ -1,14 +1,13 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 
 @dataclass
-class Ferramenta(ABC):
+class Ferramenta():
     controlador : object
     inicio_X: int = 0
     inicio_Y: int = 0
     figura: object = None
-
+    figura_selecionada = None
     def mouse_pressionado(self, event):
         self.inicio_X = event.x
         self.inicio_Y = event.y
@@ -28,7 +27,9 @@ class Ferramenta(ABC):
     
     def criar_figura(self, x1, y1, x2 , y2):
         pass
-    def mouse_duplo(self):
+    def mouse_duplo(self, event):
+        pass
+    def selecionar(self, *args):
         pass
 @dataclass
 class FerramentaCriar(Ferramenta):
@@ -61,6 +62,9 @@ class FerramentaRabisco(Ferramenta):
         if self.figura:
             self.controlador.modelo.adicionar_figura(self.figura)
             self.figura = None
+
+        self.controlador.rabisco_atual = None
+        self.controlador.redesenhar()
     def criar_figura_rabisco(self, rabisco):
         return self.classe_figura(
             self.controlador.visao.cor_borda.get(),
@@ -87,11 +91,32 @@ class FerramentaPoligono(Ferramenta):
     def mouse_pressionado(self, event):
         self.controlador.modelo.pontos_poligonos.append(event.x)
         self.controlador.modelo.pontos_poligonos.append(event.y)
-
+        self.controlador.redesenhar()
     
     def mouse_arrastado(self, event):
+        pass
+
+    def mouse_solto(self,event):
+        pass 
+@dataclass
+class FerramentaSelecao(Ferramenta):
+    classe_figura: type = None
+    figura_selecionada = None
+    def selecionar(self, event): 
+        for figura in reversed( self.controlador.modelo.figuras ): 
+            if figura.identificar(event): 
+                self.figura_selecionada = figura
+                break
+    def mouse_arrastado(self, event):
+        if self.figura_selecionada is None:
+            return
+
+        dx = event.x - self.inicio_X
+        dy = event.y - self.inicio_Y
+
+        self.figura_selecionada.mover(dx, dy)
+
+        self.inicio_X = event.x
+        self.inicio_Y = event.y
+
         self.controlador.redesenhar()
-
-        if self.figura:
-                self.figura.desenhar(self.controlador.visao.canvas)
-

@@ -9,12 +9,12 @@ class Visao:
     def __init__(self, janela):
         self.janela = janela
         self.janela.title("Aplicativo_MMD")
-
-        self.largura = 400
-        self.altura = 400
+        
+        self.altura = 800
+        self.largura = 600
 
         self.tipo_figura = StringVar(value= "Rabisco")
-        self.menu_tamanho = StringVar(value="Tamanho_do_Desenho")
+        self.menu_tamanho = StringVar(value="Tamanho do Desenho")
         self.cor_borda = StringVar(value="black")
         self.cor_preenchimento = StringVar(value="black")
         self.espessura = IntVar(value=5)
@@ -30,6 +30,7 @@ class Visao:
         self.menu_figura = OptionMenu(
             self.frame_menu,
             self.tipo_figura,
+            "Seleção",
            "Rabisco",
             "Linha",
             "Retângulo",
@@ -68,9 +69,9 @@ class Visao:
                 command=self.escolher_cor_preenchimento,
                 relief=tk.RAISED,borderwidth=3
                             )
-        self.botao_preenchimento.grid(row=1, column=1)
+        self.botao_preenchimento.grid(row=1, column=2)
         lbl_preenchimento = Label(self.frame_menu,text = "Cor do preenchimento: ")
-        lbl_preenchimento.grid(row = 1 , column= 0)
+        lbl_preenchimento.grid(row = 1 , column= 1)
 
         self.menu_espessura = OptionMenu(
             self.frame_menu,
@@ -95,16 +96,15 @@ class Visao:
                
         
         self.bt_abrir = tk.Button(self.frame_menu, text="Abrir Desenho")
-        self.bt_abrir.grid(row = 2 , column= 5)
+        self.bt_abrir.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         self.bt_salvar =tk.Button(self.frame_menu, text="Salvar Desenho")
-        self.bt_salvar.grid(row = 2,column= 3)
+        self.bt_salvar.grid(row=1, column=0, sticky="ew", padx=5)
 
         self.canvas = Canvas(
             self.janela,
             bg="white",
             width=self.largura,
             height=self.altura
-        
         )
         self.canvas.pack()
     def escolher_cor_borda(self):

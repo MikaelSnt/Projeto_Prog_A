@@ -1,14 +1,15 @@
 from model.modelo import *
 from controller.FerramentasFiguras import * 
 from dataclasses import dataclass
-
+import copy as copy
 
 @dataclass
 class Controlador:
     modelo: object 
     visao : object 
     def __post_init__(self):         
-        self.ferramentas = {"Linha" : FerramentaCriar(self,classe_figura= Linha), 
+        self.ferramentas = {"Seleção" : FerramentaSelecao(self),
+                        "Linha" : FerramentaCriar(self,classe_figura= Linha), 
                        "Retângulo" : FerramentaCriar(self, classe_figura = Retangulo),
                         "Oval" : FerramentaCriar(self,classe_figura= Oval),
                         "Círculo": FerramentaCriar(self,classe_figura= Circulo),
@@ -37,11 +38,29 @@ class Controlador:
             "write",
             self.mudar_tamanho
         )
-        self.visao.bt_abrir.config(command=self.abrir)
-        self.visao.bt_salvar.config(command=self.salvar)
+        self.visao.bt_abrir.config(
+            command=self.abrir
+            )
+        self.visao.bt_salvar.config(
+            command=self.salvar
+        )
 
         self.visao.btn_limpar.config(
             command=self.limpar
+        )
+        
+        self.visao.canvas.bind_all(
+            "<Control-z>",
+            self.desfazer)
+        
+        self.visao.canvas.bind_all(
+            "<Control-y>",
+            self.refazer)
+        self.visao.canvas.bind_all(
+            "<Control-c>", self.copiar
+        )
+        self.visao.canvas.bind_all(
+            "<Control-v>", self.colar
         )
         self.atualizar_eventos()
 
@@ -49,8 +68,12 @@ class Controlador:
         self.visao.canvas.bind(
             "<Double-Button-1>",
             self.ferramenta.mouse_duplo
-            )
-
+        )
+        self.visao.canvas.bind(
+            "<ButtonPress-3>",
+            self.ferramenta.selecionar
+        )
+        
         self.visao.canvas.bind(
             "<ButtonPress-1>",
             self.ferramenta.mouse_pressionado
@@ -65,12 +88,7 @@ class Controlador:
             "<ButtonRelease-1>",
             self.ferramenta.mouse_solto
         )
-        self.visao.canvas.bind_all(
-            "<Control-z>",
-            self.desfazer)
-        self.visao.canvas.bind_all(
-            "<Control-y>",
-            self.refazer)
+
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -109,7 +127,7 @@ class Controlador:
             self.visao.canvas.create_line(
             self.modelo.pontos_poligonos,
             fill=self.visao.cor_borda.get(),
-            width=2
+            width=self.visao.espessura.get()
         )
 
     def limpar(self):
@@ -122,18 +140,26 @@ class Controlador:
         self.modelo.salvar_projeto()
     
     def abrir(self):
-        self.modelo.abrir_projeto()
+        if self.modelo.abrir_projeto():
+            self.redesenhar()
+        
+    def desfazer(self,*args):
+        if not self.modelo.figuras:
+            return
+        ultimo = self.modelo.figuras.pop()
+        self.lista_ults.append(ultimo)
+        self.redesenhar()
+
+    def refazer(self, *agrs):
+        if not self.lista_ults:
+            return
+        figura = self.lista_ults.pop()
+        self.modelo.figuras.append(figura)
+        self.redesenhar()
+    def copiar(self, *agrs):
+        if self.ferramenta.figura_selecionada:
+            self.figura_copiada = copy.deepcopy(self.ferramenta.figura_selecionada)
+    def colar(self, *args):
+        self.modelo.figuras.append(self.figura_copiada)
         self.redesenhar()
         
-    def desfazer(self,event):
-        lista_fig = self.modelo.figuras
-        self.ultimo = lista_fig.pop()
-        self.lista_ults.append(self.ultimo)
-        print(self.lista_ults)
-        self.redesenhar()
-        
-    def refazer(self,event):
-        control_y = self.lista_ults.pop()
-        print(self.lista_ults)
-        self.modelo.figuras.append(control_y)
-        self.redesenhar()
