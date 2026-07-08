@@ -19,7 +19,6 @@ class Controlador:
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
         self.lista_refazer = []
-        self.lista_apagados = []
         self.historico = []
         self.configurar_eventos()
         self.redesenhar()
@@ -203,32 +202,65 @@ class Controlador:
         self.redesenhar()
 
     def apagar(self,*args):
-        self.figura_selecionada = self.ferramenta.figura_selecionada
-        self.modelo.figuras.remove(self.figura_selecionada)
-        self.lista_apagados.append(self.figura_selecionada)
-        self.historico.append("apagado")
+        figura = self.ferramenta.figura_selecionada
+
+        
+        if figura is None:
+            return
+        
+        self.modelo.figuras.remove(figura)
+        self.lista_refazer.clear()
+        self.historico.append(("apagado", figura))
+
         self.redesenhar()
         
     def desfazer(self,*args):
         if not self.historico:
             return
 
-        ultima_acao = self.historico.pop()
-
-        if ultima_acao == "apagado":
-            figura_apagada = self.lista_apagados.pop()
-            self.modelo.figuras.append(figura_apagada)
-            self.lista_refazer.append(figura_apagada)
+        historico = self.historico.pop()
+        ultima_acao = historico[0]
+        
+        if ultima_acao == "moveu":
+            figura = historico[1]
+            dx = historico[2]
+            dy = historico[3]
+            figura.mover(-dx,-dy)
+         
+        
+        elif ultima_acao == "apagado":
+            figura = historico[1]
+            self.modelo.figuras.append(figura)
+            
 
         elif ultima_acao == "desenho":
-            if self.modelo.figuras:
-                ultimo_desenho = self.modelo.figuras.pop()
-                self.lista_refazer.append(ultimo_desenho)
+            figura  = historico[1]
+            if figura in self.modelo.obter_figuras():
+                self.modelo.figuras.remove(figura)
+        self.lista_refazer.append(historico)    
         self.redesenhar()
 
     def refazer(self, *agrs):
         if not self.lista_refazer:
             return
-        figura = self.lista_refazer.pop()
-        self.modelo.figuras.append(figura)
+        
+        historico = self.lista_refazer.pop()
+        ultima_acao = historico[0]
+        
+        if ultima_acao == "desenho":
+            figura = historico[1]
+            self.modelo.figuras.append(figura)
+        
+        elif ultima_acao == "apagado":
+            figura = historico[1]
+            if figura in self.modelo.obter_figuras():
+                self.modelo.figuras.remove(figura)
+        
+        elif ultima_acao == "moveu":
+            figura = historico[1]
+            dx = historico[2]
+            dy = historico[3]
+            figura.mover(dx, dy)
+
+        self.historico.append(historico)
         self.redesenhar()

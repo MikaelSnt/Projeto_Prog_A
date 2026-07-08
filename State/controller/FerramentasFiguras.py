@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import colorsys
+
 
 @dataclass
 class Ferramenta():
@@ -20,10 +20,14 @@ class Ferramenta():
 
     def mouse_solto(self, event):
         if self.figura:
+            figura = self.figura
+
             self.controlador.modelo.adicionar_figura(self.figura)
             self.figura = None
+
             self.controlador.redesenhar()
-            self.controlador.historico.append("desenho")
+            self.controlador.lista_refazer.clear()
+            self.controlador.historico.append(("desenho", figura))
     
     def criar_figura(self, x1, y1, x2 , y2):
         pass
@@ -63,12 +67,16 @@ class FerramentaRabisco(Ferramenta):
                 self.figura.desenhar(self.controlador.visao.canvas)
     def mouse_solto(self, event):
         if self.figura:
+            figura = self.figura
+
             self.controlador.modelo.adicionar_figura(self.figura)
+            self.controlador.lista_refazer.clear()
+            self.controlador.historico.append(("desenho", figura))
             self.figura = None
 
         self.controlador.rabisco_atual = None
         self.controlador.redesenhar()
-        self.controlador.historico.append("desenho")
+
     def criar_figura_rabisco(self, rabisco):
         return self.classe_figura(
             self.controlador.visao.cor_borda.get(),
@@ -87,11 +95,14 @@ class FerramentaPoligono(Ferramenta):
                                           self.controlador.modelo.pontos_poligonos.copy())
         
         if self.figura:
+            figura = self.figura
             self.controlador.modelo.adicionar_figura(self.figura)
+            self.controlador.lista_refazer.clear()
+            self.controlador.historico.append(("desenho", figura))
             self.figura = None
         self.controlador.modelo.pontos_poligonos.clear()
         self.controlador.redesenhar()     
-        self.controlador.historico.append("desenho")
+
     def mouse_pressionado(self, event):
         self.controlador.modelo.pontos_poligonos.append(event.x)
         self.controlador.modelo.pontos_poligonos.append(event.y)
@@ -113,7 +124,9 @@ class FerramentaSelecao(Ferramenta):
         for figura in reversed( self.controlador.modelo.figuras): 
             if figura.identificar(event): 
                 self.figura_selecionada = figura
-                if type(figura).__name__ == "Linha":
+                self.dx_total = 0
+                self.dy_total = 0
+                if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
                     self.cor_original = figura.cor_preenchimento
                     figura.cor_preenchimento = "#80ff00"
                 else:
@@ -129,15 +142,25 @@ class FerramentaSelecao(Ferramenta):
         dx = event.x - self.inicio_X
         dy = event.y - self.inicio_Y
 
+        self.dx_total += dx
+        self.dy_total += dy
+        
         self.figura_selecionada.mover(dx, dy)
 
         self.inicio_X = event.x
         self.inicio_Y = event.y
-
         self.controlador.redesenhar()
+    
+    def mouse_solto(self, event):
+        if self.figura_selecionada:
+            if self.dx_total != 0 or self.dy_total != 0:
+                self.controlador.lista_refazer.clear()
+                self.controlador.historico.append(("moveu",self.figura_selecionada,self.dx_total,self.dy_total))
+        self.dx_total = 0
+        self.dy_total = 0
     def desselecionar(self):
         if self.figura_selecionada:
-            if type(self.figura_selecionada).__name__ == "Linha":
+            if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
                 self.figura_selecionada.cor_preenchimento = self.cor_original
             else:
                 self.figura_selecionada.cor_borda = self.cor_original

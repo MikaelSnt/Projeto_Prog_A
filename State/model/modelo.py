@@ -19,11 +19,7 @@ class Figuras(ABC):
         self.y1 += dy
         self.y2 += dy
         self.x2 += dx
-    def desmover(self,dx,dy):
-        self.x1 -= dx
-        self.y1 = dy
-        self.y2 -= dy
-        self.x2 -= dx
+
 @dataclass
 class Rabisco(Figuras):
     pontos : list
@@ -32,7 +28,7 @@ class Rabisco(Figuras):
             canvas.create_line(self.pontos, fill=self.cor_preenchimento, width=self.espessura)
     def identificar(self, event):
         pass
-    def mover(self, dx,dy):
+    def mover(self, event):
         pass
 @dataclass
 class Linha(Figuras):
@@ -111,9 +107,33 @@ class Poligono(Figuras):
     def desenhar(self, canvas):
         canvas.create_polygon(self.pontos,outline=self.cor_borda,fill=self.cor_preenchimento,width=self.espessura)
     def identificar(self, event):
-        pass
-    def mover(self, dx,dy):
-        pass
+        x = event.x
+        y = event.y
+        vertices = [] 
+        dentro = False
+        
+        for i in range(0, len(self.pontos), 2): #Transforma em vertices, porque no nosso caso, são pontos organizados em [x1,y1,x2,y2,x3,y3]
+            vertices.append((self.pontos[i], self.pontos[i+1]))
+
+        n = len(vertices)
+        if n < 3:
+            return False    
+        p1x, p1y = vertices[0]
+        for i in range(n + 1):
+            p2x, p2y = vertices[i % n]
+            if y > min(p1y, p2y):
+                if y <= max(p1y, p2y):
+                    if x <= max(p1x, p2x):
+                        if p1y != p2y:
+                            x_interceptado = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                        if p1x == p2x or x <= x_interceptado:
+                            dentro = not dentro
+            p1x, p1y = p2x, p2y
+        return dentro
+    def mover(self, dx , dy):
+        for i in range(0, len(self.pontos), 2):
+            self.pontos[i] += dx
+            self.pontos[i + 1] += dy
 class Modelo:
     def __init__(self):    
         self.figuras = []
