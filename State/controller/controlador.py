@@ -40,6 +40,14 @@ class Controlador:
             "write",
             self.mudar_tamanho
         )
+        self.visao.cor_preenchimento.trace_add(
+            "write",
+            self.atualizar_cor_selecao
+        )
+        self.visao.cor_borda.trace_add(
+            "write",
+            self.atualizar_cor_selecao
+        )
         self.visao.bt_abrir.config(
             command=self.abrir
             )
@@ -147,7 +155,11 @@ class Controlador:
         self.visao.canvas.delete("all")
         if self.visao.grade.get() == "Com grade":
             self.exibir_grades()
-    
+
+    def atualizar_cor_selecao(self, *args):
+        self.ferramenta.atualizar_cor()
+        self.redesenhar()
+
     def salvar(self):
         self.modelo.salvar_projeto()
     
@@ -173,9 +185,8 @@ class Controlador:
 
     def cima_total(self,*args):
         self.figura_selecionada = self.ferramenta.figura_selecionada
-        i = self.modelo.figuras.index(self.figura_selecionada)
-        figura = self.modelo.figuras.pop(i)
-        self.modelo.figuras.append(figura)
+        self.modelo.figuras.remove(self.figura_selecionada)
+        self.modelo.figuras.append(self.figura_selecionada)
         self.redesenhar()
 
     def Baixo(self,*args):
@@ -187,9 +198,8 @@ class Controlador:
 
     def Baixo_total(self,*args):
         self.figura_selecionada = self.ferramenta.figura_selecionada
-        i = self.modelo.figuras.index(self.figura_selecionada)
-        figura = self.modelo.figuras.pop(i)
-        self.modelo.figuras.insert(0,figura)
+        self.modelo.figuras.remove(self.figura_selecionada)
+        self.modelo.figuras.insert(0,self.figura_selecionada)
         self.redesenhar()
 
     def apagar(self,*args):

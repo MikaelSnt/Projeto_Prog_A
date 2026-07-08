@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+import colorsys
 
 @dataclass
 class Ferramenta():
@@ -30,6 +30,10 @@ class Ferramenta():
     def mouse_duplo(self, event):
         pass
     def selecionar(self, *args):
+        pass
+    def desselecionar(self):
+        pass
+    def atualizar_cor(self):
         pass
 @dataclass
 class FerramentaCriar(Ferramenta):
@@ -105,12 +109,19 @@ class FerramentaSelecao(Ferramenta):
     cor_original = None
     def mouse_pressionado(self, event):
         super().mouse_pressionado(event)
-        for figura in reversed( self.controlador.modelo.figuras ): 
+        self.desselecionar()
+        for figura in reversed( self.controlador.modelo.figuras): 
             if figura.identificar(event): 
                 self.figura_selecionada = figura
-                self.cor_original = figura.cor_borda
-                figura.cor_borda = "#80ff00"
+                if type(figura).__name__ == "Linha":
+                    self.cor_original = figura.cor_preenchimento
+                    figura.cor_preenchimento = "#80ff00"
+                else:
+                    self.cor_original = figura.cor_borda
+                    figura.cor_borda = "#80ff00"
+                self.controlador.redesenhar()
                 break
+
     def mouse_arrastado(self, event):
         if self.figura_selecionada is None:
             return
@@ -124,8 +135,18 @@ class FerramentaSelecao(Ferramenta):
         self.inicio_Y = event.y
 
         self.controlador.redesenhar()
-    def mouse_solto(self, event):
-        self.figura_selecionada.cor_borda = self.cor_original
+    def desselecionar(self):
+        if self.figura_selecionada:
+            if type(self.figura_selecionada).__name__ == "Linha":
+                self.figura_selecionada.cor_preenchimento = self.cor_original
+            else:
+                self.figura_selecionada.cor_borda = self.cor_original
         self.figura_selecionada = None
+        self.cor_original = None
+        self.nova_cor = None
         self.controlador.redesenhar()
-       
+    def atualizar_cor(self):
+        if self.figura_selecionada:
+            self.figura_selecionada.cor_preenchimento = self.controlador.visao.cor_preenchimento.get()
+            self.cor_original = self.controlador.visao.cor_borda.get()
+ 
