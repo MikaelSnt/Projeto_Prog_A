@@ -18,7 +18,9 @@ class Controlador:
         
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
-        self.lista_ults = []
+        self.lista_refazer = []
+        self.lista_apagados = []
+        self.historico = []
         self.configurar_eventos()
         self.redesenhar()
 
@@ -62,6 +64,21 @@ class Controlador:
         self.visao.canvas.bind_all(
             "<Control-v>", self.colar
         )
+        self.visao.canvas.bind_all(
+            "<Delete>", self.apagar
+        )
+        self.visao.canvas.bind_all(
+            "<Right>", self.cima
+        )
+        self.visao.canvas.bind_all(
+            "<Left>", self.Baixo
+        )
+        self.visao.canvas.bind_all(
+            "<Up>", self.cima_total
+        )
+        self.visao.canvas.bind_all(
+            "<Down>", self.Baixo_total
+        )
         self.atualizar_eventos()
 
     def atualizar_eventos(self):
@@ -69,11 +86,6 @@ class Controlador:
             "<Double-Button-1>",
             self.ferramenta.mouse_duplo
         )
-        self.visao.canvas.bind(
-            "<ButtonPress-3>",
-            self.ferramenta.selecionar
-        )
-        
         self.visao.canvas.bind(
             "<ButtonPress-1>",
             self.ferramenta.mouse_pressionado
@@ -142,24 +154,71 @@ class Controlador:
     def abrir(self):
         if self.modelo.abrir_projeto():
             self.redesenhar()
+
+    def copiar(self, *agrs):
+        if self.ferramenta.figura_selecionada:
+            self.figura_copiada = self.ferramenta.figura_selecionada
+
+    def colar(self, *args):
+        if self.figura_copiada:
+            nova_fig = copy.deepcopy(self.figura_copiada)
+            self.modelo.figuras.append(nova_fig)
+            self.redesenhar()
+    def cima(self,*args):
+        self.figura_selecionada = self.ferramenta.figura_selecionada
+        i = self.modelo.figuras.index(self.figura_selecionada)
+        figura = self.modelo.figuras.pop(i)
+        self.modelo.figuras.insert(i+1,figura)
+        self.redesenhar()
+
+    def cima_total(self,*args):
+        self.figura_selecionada = self.ferramenta.figura_selecionada
+        i = self.modelo.figuras.index(self.figura_selecionada)
+        figura = self.modelo.figuras.pop(i)
+        self.modelo.figuras.append(figura)
+        self.redesenhar()
+
+    def Baixo(self,*args):
+        self.figura_selecionada = self.ferramenta.figura_selecionada
+        i = self.modelo.figuras.index(self.figura_selecionada)
+        figura = self.modelo.figuras.pop(i)
+        self.modelo.figuras.insert(i-1,figura)
+        self.redesenhar()
+
+    def Baixo_total(self,*args):
+        self.figura_selecionada = self.ferramenta.figura_selecionada
+        i = self.modelo.figuras.index(self.figura_selecionada)
+        figura = self.modelo.figuras.pop(i)
+        self.modelo.figuras.insert(0,figura)
+        self.redesenhar()
+
+    def apagar(self,*args):
+        self.figura_selecionada = self.ferramenta.figura_selecionada
+        self.modelo.figuras.remove(self.figura_selecionada)
+        self.lista_apagados.append(self.figura_selecionada)
+        self.historico.append("apagado")
+        self.redesenhar()
         
     def desfazer(self,*args):
-        if not self.modelo.figuras:
+        if not self.historico:
             return
-        ultimo = self.modelo.figuras.pop()
-        self.lista_ults.append(ultimo)
+
+        ultima_acao = self.historico.pop()
+
+        if ultima_acao == "apagado":
+            figura_apagada = self.lista_apagados.pop()
+            self.modelo.figuras.append(figura_apagada)
+            self.lista_refazer.append(figura_apagada)
+
+        elif ultima_acao == "desenho":
+            if self.modelo.figuras:
+                ultimo_desenho = self.modelo.figuras.pop()
+                self.lista_refazer.append(ultimo_desenho)
         self.redesenhar()
 
     def refazer(self, *agrs):
-        if not self.lista_ults:
+        if not self.lista_refazer:
             return
-        figura = self.lista_ults.pop()
+        figura = self.lista_refazer.pop()
         self.modelo.figuras.append(figura)
         self.redesenhar()
-    def copiar(self, *agrs):
-        if self.ferramenta.figura_selecionada:
-            self.figura_copiada = copy.deepcopy(self.ferramenta.figura_selecionada)
-    def colar(self, *args):
-        self.modelo.figuras.append(self.figura_copiada)
-        self.redesenhar()
-        

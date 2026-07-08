@@ -19,6 +19,11 @@ class Figuras(ABC):
         self.y1 += dy
         self.y2 += dy
         self.x2 += dx
+    def desmover(self,dx,dy):
+        self.x1 -= dx
+        self.y1 = dy
+        self.y2 -= dy
+        self.x2 -= dx
 @dataclass
 class Rabisco(Figuras):
     pontos : list
@@ -113,7 +118,6 @@ class Modelo:
     def __init__(self):    
         self.figuras = []
         self.pontos_poligonos = []
-
     def adicionar_figura(self, figura):
         self.figuras.append(figura)        
 

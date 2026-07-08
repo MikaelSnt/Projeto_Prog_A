@@ -22,8 +22,8 @@ class Ferramenta():
         if self.figura:
             self.controlador.modelo.adicionar_figura(self.figura)
             self.figura = None
-        
-        self.controlador.redesenhar()
+            self.controlador.redesenhar()
+            self.controlador.historico.append("desenho")
     
     def criar_figura(self, x1, y1, x2 , y2):
         pass
@@ -46,7 +46,6 @@ class FerramentaCriar(Ferramenta):
             x2,
             y2
             )
-
 @dataclass
 class FerramentaRabisco(Ferramenta):
     classe_figura: type = None
@@ -65,6 +64,7 @@ class FerramentaRabisco(Ferramenta):
 
         self.controlador.rabisco_atual = None
         self.controlador.redesenhar()
+        self.controlador.historico.append("desenho")
     def criar_figura_rabisco(self, rabisco):
         return self.classe_figura(
             self.controlador.visao.cor_borda.get(),
@@ -87,7 +87,7 @@ class FerramentaPoligono(Ferramenta):
             self.figura = None
         self.controlador.modelo.pontos_poligonos.clear()
         self.controlador.redesenhar()     
-        
+        self.controlador.historico.append("desenho")
     def mouse_pressionado(self, event):
         self.controlador.modelo.pontos_poligonos.append(event.x)
         self.controlador.modelo.pontos_poligonos.append(event.y)
@@ -102,10 +102,14 @@ class FerramentaPoligono(Ferramenta):
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None
     figura_selecionada = None
-    def selecionar(self, event): 
+    cor_original = None
+    def mouse_pressionado(self, event):
+        super().mouse_pressionado(event)
         for figura in reversed( self.controlador.modelo.figuras ): 
             if figura.identificar(event): 
                 self.figura_selecionada = figura
+                self.cor_original = figura.cor_borda
+                figura.cor_borda = "#80ff00"
                 break
     def mouse_arrastado(self, event):
         if self.figura_selecionada is None:
@@ -120,3 +124,8 @@ class FerramentaSelecao(Ferramenta):
         self.inicio_Y = event.y
 
         self.controlador.redesenhar()
+    def mouse_solto(self, event):
+        self.figura_selecionada.cor_borda = self.cor_original
+        self.figura_selecionada = None
+        self.controlador.redesenhar()
+       
