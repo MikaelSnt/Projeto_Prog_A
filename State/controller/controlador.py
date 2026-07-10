@@ -9,20 +9,67 @@ class Controlador:
     visao : object 
     def __post_init__(self):         
         self.ferramentas = {"Seleção" : FerramentaSelecao(self),
-                        "Linha" : FerramentaCriar(self,classe_figura= Linha), 
-                       "Retângulo" : FerramentaCriar(self, classe_figura = Retangulo),
-                        "Oval" : FerramentaCriar(self,classe_figura= Oval),
-                        "Círculo": FerramentaCriar(self,classe_figura= Circulo),
+                        "Linha" : FerramentaSimples(self,classe_figura= Linha), 
+                       "Retângulo" : FerramentaSimples(self, classe_figura = Retangulo),
+                        "Oval" : FerramentaSimples(self,classe_figura= Oval),
+                        "Círculo": FerramentaSimples(self,classe_figura= Circulo),
                         "Rabisco": FerramentaRabisco(self, classe_figura=Rabisco),
                         "Polígono": FerramentaPoligono(self, classe_figura=Poligono)}
         
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
         self.lista_refazer = []
+        self.lista_apagados = []
         self.historico = []
         self.configurar_eventos()
         self.redesenhar()
+        self.visao.canvas.bind(
+            "<Double-Button-1>",
+            self.mouse_duplo
+        )
+        self.visao.canvas.bind(
+            "<ButtonPress-1>",
+            self.mouse_pressionado
+        )
 
+        self.visao.canvas.bind(
+            "<B1-Motion>",
+            self.mouse_arrastado
+        )
+
+        self.visao.canvas.bind(
+            "<ButtonRelease-1>",
+            self.mouse_solto
+        )
+                
+        self.visao.canvas.bind_all(
+            "<Control-z>",
+            self.desfazer)
+        
+        self.visao.canvas.bind_all(
+            "<Control-y>",
+            self.refazer)
+        self.visao.canvas.bind_all(
+            "<Control-c>", self.copiar
+        )
+        self.visao.canvas.bind_all(
+            "<Control-v>", self.colar
+        )
+        self.visao.canvas.bind_all(
+            "<Delete>", self.apagar
+        )
+        self.visao.canvas.bind_all(
+            "<Right>", self.cima
+        )
+        self.visao.canvas.bind_all(
+            "<Left>", self.Baixo
+        )
+        self.visao.canvas.bind_all(
+            "<Up>", self.cima_total
+        )
+        self.visao.canvas.bind_all(
+            "<Down>", self.Baixo_total
+        )
     def configurar_eventos(self):
 
         self.visao.tipo_figura.trace_add(
@@ -57,61 +104,21 @@ class Controlador:
         self.visao.btn_limpar.config(
             command=self.limpar
         )
-        
-        self.visao.canvas.bind_all(
-            "<Control-z>",
-            self.desfazer)
-        
-        self.visao.canvas.bind_all(
-            "<Control-y>",
-            self.refazer)
-        self.visao.canvas.bind_all(
-            "<Control-c>", self.copiar
-        )
-        self.visao.canvas.bind_all(
-            "<Control-v>", self.colar
-        )
-        self.visao.canvas.bind_all(
-            "<Delete>", self.apagar
-        )
-        self.visao.canvas.bind_all(
-            "<Right>", self.cima
-        )
-        self.visao.canvas.bind_all(
-            "<Left>", self.Baixo
-        )
-        self.visao.canvas.bind_all(
-            "<Up>", self.cima_total
-        )
-        self.visao.canvas.bind_all(
-            "<Down>", self.Baixo_total
-        )
-        self.atualizar_eventos()
+    def mouse_pressionado(self, event):
+        self.ferramenta.mouse_pressionado(event)
 
-    def atualizar_eventos(self):
-        self.visao.canvas.bind(
-            "<Double-Button-1>",
-            self.ferramenta.mouse_duplo
-        )
-        self.visao.canvas.bind(
-            "<ButtonPress-1>",
-            self.ferramenta.mouse_pressionado
-        )
+    def mouse_arrastado(self, event):
+        self.ferramenta.mouse_arrastado(event)
 
-        self.visao.canvas.bind(
-            "<B1-Motion>",
-            self.ferramenta.mouse_arrastado
-        )
+    def mouse_solto(self, event):
+        self.ferramenta.mouse_solto(event)
 
-        self.visao.canvas.bind(
-            "<ButtonRelease-1>",
-            self.ferramenta.mouse_solto
-        )
+    def mouse_duplo(self, event):
+        self.ferramenta.mouse_duplo(event)
 
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
-        self.atualizar_eventos()
 
     def mudar_tamanho(self, *args):
         tamanho = self.visao.menu_tamanho.get().split()

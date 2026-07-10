@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Ferramenta():
     controlador : object
@@ -8,6 +7,26 @@ class Ferramenta():
     inicio_Y: int = 0
     figura: object = None
     figura_selecionada = None
+    def mouse_pressionado(self, event):
+        pass
+    def mouse_arrastado(self, event):
+        pass
+    def mouse_solto(self, event):
+        pass
+    def criar_figura(self, x1, y1, x2 , y2):
+        pass
+    def mouse_duplo(self, event):
+        pass
+    def selecionar(self, *args):
+        pass
+    def desselecionar(self):
+        pass
+    def atualizar_cor(self):
+        pass
+
+@dataclass
+class FerramentaSimples(Ferramenta):
+    classe_figura : type = None 
     def mouse_pressionado(self, event):
         self.inicio_X = event.x
         self.inicio_Y = event.y
@@ -20,32 +39,14 @@ class Ferramenta():
 
     def mouse_solto(self, event):
         if self.figura:
-            figura = self.figura
-
             self.controlador.modelo.adicionar_figura(self.figura)
             self.figura = None
-
             self.controlador.redesenhar()
-            self.controlador.lista_refazer.clear()
-            self.controlador.historico.append(("desenho", figura))
+            self.controlador.historico.append("desenho")
     
-    def criar_figura(self, x1, y1, x2 , y2):
-        pass
-    def mouse_duplo(self, event):
-        pass
-    def selecionar(self, *args):
-        pass
-    def desselecionar(self):
-        pass
-    def atualizar_cor(self):
-        pass
-@dataclass
-class FerramentaCriar(Ferramenta):
-    classe_figura: type = None
-
     def criar_figura(self, x1, y1, x2, y2):
 
-        return self.classe_figura(
+            return self.classe_figura(
             self.controlador.visao.cor_borda.get(),
             self.controlador.visao.espessura.get(),
             self.controlador.visao.cor_preenchimento.get(),
