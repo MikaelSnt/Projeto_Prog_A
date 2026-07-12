@@ -17,12 +17,7 @@ class Ferramenta():
         pass
     def mouse_duplo(self, event):
         pass
-    def selecionar(self, *args):
-        pass
-    def desselecionar(self):
-        pass
-    def atualizar_cor(self):
-        pass
+
 
 @dataclass
 class FerramentaSimples(Ferramenta):
@@ -39,11 +34,11 @@ class FerramentaSimples(Ferramenta):
 
     def mouse_solto(self, event):
         if self.figura:
-            self.controlador.modelo.adicionar_figura(self.figura)
-            self.figura = None
+            figura = self.figura
+            self.controlador.modelo.adicionar_figura(figura)
             self.controlador.redesenhar()
-            self.controlador.historico.append("desenho")
-    
+            self.controlador.historico.append(("desenho", figura))
+            self.figura = None
     def criar_figura(self, x1, y1, x2, y2):
 
             return self.classe_figura(
@@ -117,60 +112,22 @@ class FerramentaPoligono(Ferramenta):
 @dataclass
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None
-    figura_selecionada = None
-    cor_original = None
     def mouse_pressionado(self, event):
-        super().mouse_pressionado(event)
-        self.desselecionar()
-        for figura in reversed( self.controlador.modelo.figuras): 
-            if figura.identificar(event): 
-                self.figura_selecionada = figura
-                self.dx_total = 0
-                self.dy_total = 0
-                if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
-                    self.cor_original = figura.cor_preenchimento
-                    figura.cor_preenchimento = "#80ff00"
-                else:
-                    self.cor_original = figura.cor_borda
-                    figura.cor_borda = "#80ff00"
-                self.controlador.redesenhar()
-                break
-
-    def mouse_arrastado(self, event):
-        if self.figura_selecionada is None:
-            return
-
-        dx = event.x - self.inicio_X
-        dy = event.y - self.inicio_Y
-
-        self.dx_total += dx
-        self.dy_total += dy
+        self.controlador.modelo.desselecionar()
+        self.controlador.modelo.identificar_figura(event.x, event.y)
+        self.controlador.redesenhar()
         
-        self.figura_selecionada.mover(dx, dy)
-
-        self.inicio_X = event.x
-        self.inicio_Y = event.y
+    def mouse_arrastado(self, event):
+        self.controlador.modelo.mover_figura(event.x,event.y)
         self.controlador.redesenhar()
     
     def mouse_solto(self, event):
-        if self.figura_selecionada:
-            if self.dx_total != 0 or self.dy_total != 0:
+        ultima_acao = self.controlador.modelo.finalizar_movimento()
+        if ultima_acao:
                 self.controlador.lista_refazer.clear()
-                self.controlador.historico.append(("moveu",self.figura_selecionada,self.dx_total,self.dy_total))
-        self.dx_total = 0
-        self.dy_total = 0
-    def desselecionar(self):
-        if self.figura_selecionada:
-            if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
-                self.figura_selecionada.cor_preenchimento = self.cor_original
-            else:
-                self.figura_selecionada.cor_borda = self.cor_original
-        self.figura_selecionada = None
-        self.cor_original = None
-        self.nova_cor = None
-        self.controlador.redesenhar()
+                self.controlador.historico.append(ultima_acao)
+        self.controlador.modelo.dx_total = 0
+        self.controlador.modelo.dy_total = 0
     def atualizar_cor(self):
-        if self.figura_selecionada:
-            self.figura_selecionada.cor_preenchimento = self.controlador.visao.cor_preenchimento.get()
-            self.cor_original = self.controlador.visao.cor_borda.get()
+        self.controlador.modelo.atualizar_cor(self.controlador.visao.cor_borda.get(), self.controlador.visao.cor_preenchimento.get())
  

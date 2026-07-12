@@ -135,8 +135,6 @@ class Controlador:
             for x1, y1, x2, y2 in linhas:
                 self.visao.canvas.create_line(x1, y1, x2, y2, fill="lightgray")
 
-
-         
     def atualizar_grade(self, *args):
         self.redesenhar()
 
@@ -163,7 +161,7 @@ class Controlador:
             self.exibir_grades()
 
     def atualizar_cor_selecao(self, *args):
-        self.ferramenta.atualizar_cor()
+        self.modelo.atualizar_cor(self.visao.cor_borda.get(), self.visao.cor_preenchimento.get())
         self.redesenhar()
 
     def salvar(self):
@@ -174,44 +172,52 @@ class Controlador:
             self.redesenhar()
 
     def copiar(self, *agrs):
-        if self.ferramenta.figura_selecionada:
-            self.figura_copiada = self.ferramenta.figura_selecionada
+        if self.modelo.figura_selecionada is None:
+            return
 
+        if self.modelo.figura_selecionada:
+            self.figura_copiada = copy.deepcopy(self.modelo.figura_selecionada)
+        if type(self.figura_copiada).__name__ in ("Linha", "Rabisco"):
+            self.figura_copiada.cor_preenchimento = self.modelo.cor_original
+        else:
+            self.figura_copiada.cor_borda = self.modelo.cor_original
     def colar(self, *args):
         if self.figura_copiada:
             nova_fig = copy.deepcopy(self.figura_copiada)
-            self.modelo.figuras.append(nova_fig)
+
+            self.modelo.adicionar_figura(nova_fig)
+            self.lista_refazer.clear()
+            self.historico.append(("desenho", nova_fig))
             self.redesenhar()
     def cima(self,*args):
-        self.figura_selecionada = self.ferramenta.figura_selecionada
+        self.figura_selecionada = self.modelo.figura_selecionada
         i = self.modelo.figuras.index(self.figura_selecionada)
         figura = self.modelo.figuras.pop(i)
         self.modelo.figuras.insert(i+1,figura)
         self.redesenhar()
 
     def cima_total(self,*args):
-        self.figura_selecionada = self.ferramenta.figura_selecionada
+        self.figura_selecionada = self.modelo.figura_selecionada
         self.modelo.figuras.remove(self.figura_selecionada)
         self.modelo.figuras.append(self.figura_selecionada)
         self.redesenhar()
 
     def Baixo(self,*args):
-        self.figura_selecionada = self.ferramenta.figura_selecionada
+        self.figura_selecionada = self.modelo.figura_selecionada
         i = self.modelo.figuras.index(self.figura_selecionada)
         figura = self.modelo.figuras.pop(i)
         self.modelo.figuras.insert(i-1,figura)
         self.redesenhar()
 
     def Baixo_total(self,*args):
-        self.figura_selecionada = self.ferramenta.figura_selecionada
+        self.figura_selecionada = self.modelo.figura_selecionada
         self.modelo.figuras.remove(self.figura_selecionada)
         self.modelo.figuras.insert(0,self.figura_selecionada)
         self.redesenhar()
 
     def apagar(self,*args):
-        figura = self.ferramenta.figura_selecionada
+        figura = self.modelo.figura_selecionada
 
-        
         if figura is None:
             return
         

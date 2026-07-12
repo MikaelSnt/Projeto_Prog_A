@@ -11,7 +11,7 @@ class Figuras(ABC):
     espessura : float
     cor_preenchimento : str 
     @abstractmethod
-    def identificar(self,event):
+    def identificar(self,x,y):
         pass
     
     def mover(self, dx,dy):
@@ -26,10 +26,36 @@ class Rabisco(Figuras):
     def desenhar(self, canvas):
         if len(self.pontos) >= 4:
             canvas.create_line(self.pontos, fill=self.cor_preenchimento, width=self.espessura)
-    def identificar(self, event):
-        pass
-    def mover(self, event):
-        pass
+    def identificar(self,x,y):
+        for i in range(0, len(self.pontos) - 2, 2):
+
+            x1 = self.pontos[i]
+            y1 = self.pontos[i + 1]
+
+            x2 = self.pontos[i + 2]
+            y2 = self.pontos[i + 3]
+
+            if self.calcular_distancia(x, y, x1, y1, x2, y2):
+                return True
+
+    def calcular_distancia(self, x, y, x1, y1, x2, y2):         
+        dx = x2 - x1
+        dy = y2 - y1
+        if dx == 0 and dy == 0:
+            return ((x - x1) ** 2 + (y- y1) ** 2) ** 0.5
+        
+        t = ((x - x1) * dx + (y - y1) * dy) / (dx ** 2 + dy ** 2)
+        t = max(0, min(1, t))
+
+        proj_x = x1 + t * dx
+        proj_y = y1 + t * dy
+
+        distancia = (((x - proj_x) ** 2 + (y - proj_y) ** 2)) ** 0.5
+        return distancia <= 15
+    def mover(self, dx,dy):
+        for i in range(0, len(self.pontos), 2):
+            self.pontos[i] += dx
+            self.pontos[i + 1] += dy
 @dataclass
 class Linha(Figuras):
     x1 : int
@@ -38,8 +64,8 @@ class Linha(Figuras):
     y2 : int
     def desenhar(self, canvas):
         canvas.create_line(self.x1, self.y1, self.x2, self.y2, fill=self.cor_preenchimento, width=self.espessura)
-    def identificar(self, event):
-        ponto_x, ponto_y = event.x , event.y
+    def identificar(self,x,y):
+        ponto_x, ponto_y = x , y
 
         vetor_x = self.x2 - self.x1
         vetor_y = self.y2 - self.y1
@@ -53,10 +79,10 @@ class Linha(Figuras):
         t = (vetor_px * vetor_x + vetor_py * vetor_y) / comprimento
         t = max(0, min(1, t))
 
-        x = self.x1 + t * vetor_x
-        y = self.y1 + t * vetor_y
+        fx = self.x1 + t * vetor_x
+        fy = self.y1 + t * vetor_y
 
-        distancia = (((ponto_x - x) ** 2 + (ponto_y - y) ** 2)) ** 0.5
+        distancia = (((ponto_x - fx) ** 2 + (ponto_y - fy) ** 2)) ** 0.5
         return distancia <= 15
 
 @dataclass
@@ -67,10 +93,10 @@ class Retangulo(Figuras):
     y2 : int
     def desenhar(self, canvas):
         canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, outline=self.cor_borda, fill=self.cor_preenchimento, width=self.espessura)
-    def identificar(self, event):
+    def identificar(self,x,y):
         maior_x, menor_x = max(self.x1, self.x2), min(self.x1, self.x2)
         maior_y, menor_y = max(self.y1, self.y2), min(self.y1, self.y2)
-        return menor_x <= event.x <= maior_x and menor_y <= event.y <= maior_y
+        return menor_x <= x <= maior_x and menor_y <= y <= maior_y
 
 @dataclass
 class Oval(Figuras):
@@ -80,12 +106,12 @@ class Oval(Figuras):
     y2 : int
     def desenhar(self, canvas):
         canvas.create_oval(self.x1, self.y1, self.x2, self.y2, outline=self.cor_borda, fill=self.cor_preenchimento, width=self.espessura)
-    def identificar(self, event):
+    def identificar(self,x,y):
         Centro_X = (self.x1 + self.x2)/2
         Centro_Y = (self.y1 + self.y2)/2
         a = (self.x2 - self.x1)/2
         b = (self.y2 - self.y1)/2
-        ponto = ((event.x - Centro_X)**2 / (a ** 2)) + ((event.y - Centro_Y)**2 / (b ** 2))
+        ponto = ((x - Centro_X)**2 / (a ** 2)) + ((y - Centro_Y)**2 / (b ** 2))
         return ponto  <= 1
 
 @dataclass
@@ -97,8 +123,8 @@ class Circulo(Figuras):
     def desenhar(self, canvas):
         self.raio = ((self.x1 - self.x2) ** 2 + (self.y1 - self.y2) ** 2 ) ** 0.5
         canvas.create_oval(self.x1 - self.raio, self.y1 - self.raio, self.x1 + self.raio, self.y1 + self.raio, outline=self.cor_borda, fill=self.cor_preenchimento, width=self.espessura)
-    def identificar(self, event):
-        centro_geral = ((event.x - self.x1)**2 + (event.y - self.y1)**2)
+    def identificar(self,x,y):
+        centro_geral = ((x - self.x1)**2 + (y - self.y1)**2)
         return centro_geral <= self.raio**2
 
 @dataclass
@@ -106,9 +132,7 @@ class Poligono(Figuras):
     pontos: list
     def desenhar(self, canvas):
         canvas.create_polygon(self.pontos,outline=self.cor_borda,fill=self.cor_preenchimento,width=self.espessura)
-    def identificar(self, event):
-        x = event.x
-        y = event.y
+    def identificar(self,x,y):
         vertices = [] 
         dentro = False
         
@@ -138,6 +162,13 @@ class Modelo:
     def __init__(self):    
         self.figuras = []
         self.pontos_poligonos = []
+        
+        self.figura_selecionada = None
+        self.cor_original = None
+        self.dx_total = 0
+        self.dy_total = 0
+        self.inicio_x = 0
+        self.inicio_y = 0
     def adicionar_figura(self, figura):
         self.figuras.append(figura)        
 
@@ -220,4 +251,60 @@ class Modelo:
                 self.figuras = novas_figuras
             except Exception as erro:
                 print("Erro quando ta abrindo o projeto:", erro)
-       
+    def identificar_figura(self, x,y):
+        self.figura_selecionada = None
+        for figura in reversed( self.figuras): 
+            if figura.identificar(x,y): 
+                self.figura_selecionada = figura
+                self.dx_total = 0
+                self.dy_total = 0
+                self.inicio_x = x 
+                self.inicio_y = y
+                if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
+                    self.cor_original = figura.cor_preenchimento
+                    figura.cor_preenchimento = "#80ff00"
+                else:
+                    self.cor_original = figura.cor_borda
+                    figura.cor_borda = "#80ff00"
+                return figura
+        return None 
+    def mover_figura(self, x,y):
+        if self.figura_selecionada is None:
+            return
+
+        dx = x - self.inicio_x
+        dy = y - self.inicio_y
+
+        self.dx_total += dx
+        self.dy_total += dy
+        self.figura_selecionada.mover(dx, dy)
+
+        self.inicio_x = x
+        self.inicio_y = y
+    def finalizar_movimento(self):
+        if self.figura_selecionada is None:
+            return None
+
+        if self.dx_total == 0 and self.dy_total == 0:
+            return None
+
+        return ("moveu", self.figura_selecionada, self.dx_total, self.dy_total)
+    def desselecionar(self):
+        if self.figura_selecionada is None:
+            return None
+        if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
+            self.figura_selecionada.cor_preenchimento = self.cor_original
+        else:
+            self.figura_selecionada.cor_borda = self.cor_original
+        self.figura_selecionada = None
+        self.cor_original = None
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        if self.figura_selecionada is None:
+            return
+        if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco"):
+            self.figura_selecionada.cor_preenchimento = cor_preenchimento
+            self.cor_original = cor_preenchimento
+        else:
+            self.figura_selecionada.cor_borda = cor_borda
+            self.figura_selecionada.cor_preenchimento = cor_preenchimento
+            self.cor_original = cor_borda
