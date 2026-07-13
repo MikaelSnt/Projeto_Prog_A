@@ -41,7 +41,9 @@ class Controlador:
             "<ButtonRelease-1>",
             self.mouse_solto
         )
-                
+        self.visao.canvas.bind(
+            "<Control-Button-1>",
+            self.mouse_ctrl)
         self.visao.canvas.bind_all(
             "<Control-z>",
             self.desfazer)
@@ -115,7 +117,9 @@ class Controlador:
 
     def mouse_duplo(self, event):
         self.ferramenta.mouse_duplo(event)
-
+    def mouse_ctrl(self,event):
+        self.ferramenta.mouse_ctrl(event)
+        
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())

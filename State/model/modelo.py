@@ -163,7 +163,7 @@ class Modelo:
         self.figuras = []
         self.pontos_poligonos = []
         
-        self.figura_selecionada = None
+        self.figuras_selecionadas = []
         self.cor_original = None
         self.dx_total = 0
         self.dy_total = 0
@@ -251,60 +251,96 @@ class Modelo:
                 self.figuras = novas_figuras
             except Exception as erro:
                 print("Erro quando ta abrindo o projeto:", erro)
-    def identificar_figura(self, x,y):
-        self.figura_selecionada = None
+
+    def identificar_figura(self, x, y):
+        for figura in reversed(self.figuras):
+            if figura.identificar(x, y):
+                if figura in self.figuras_selecionadas:
+                    self.inicio_x = x
+                    self.inicio_y = y
+                    self.dx_total = 0
+                    self.dy_total = 0
+                    return figura
+                self.desselecionar()
+                self.figuras_selecionadas.append(figura)
+                if type(figura).__name__ in ("Linha", "Rabisco"):
+                    figura.cor_original = figura.cor_preenchimento
+                    figura.cor_preenchimento = "#80ff00"
+                else:
+                    figura.cor_original = figura.cor_borda
+                    figura.cor_borda = "#80ff00"
+                self.inicio_x = x
+                self.inicio_y = y
+                self.dx_total = 0
+                self.dy_total = 0
+                return figura
+        self.desselecionar()
+        return None
+    
+    def mover_figura(self, x,y):
+        if not self.figuras_selecionadas:
+            return
+        else:
+            dx = x - self.inicio_x
+            dy = y - self.inicio_y
+            self.dx_total += dx
+            self.dy_total += dy
+
+            for figura in self.figuras_selecionadas:
+                figura.mover(dx, dy)
+            self.inicio_x = x
+            self.inicio_y = y
+    def finalizar_movimento(self):
+        if not self.figuras_selecionadas:
+            return None
+        for figura in self.figuras_selecionadas:
+            if self.dx_total == 0 and self.dy_total == 0:
+                return None
+
+            return ("moveu", figura, self.dx_total, self.dy_total)
+
+    def desselecionar(self):
+        for figura in self.figuras_selecionadas:
+            if type(figura).__name__ in ("Linha", "Rabisco"):
+                figura.cor_preenchimento = figura.cor_original
+            else:
+                figura.cor_borda = figura.cor_original
+            figura.cor_original = None
+        self.figuras_selecionadas.clear()
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        if not self.figuras_selecionadas:
+            return
+        for figura in self.figuras_selecionadas:
+            if type(figura).__name__ in ("Linha", "Rabisco"):
+                figura.cor_preenchimento = cor_preenchimento
+                figura.cor_original = cor_preenchimento
+            else:
+                figura.cor_borda = cor_borda
+                figura.cor_preenchimento = cor_preenchimento
+                figura.cor_original = cor_borda
+
+    def identificar_varias(self,x,y):
+
         for figura in reversed( self.figuras): 
             if figura.identificar(x,y): 
-                self.figura_selecionada = figura
+                if figura in self.figuras_selecionadas:
+                    self.figuras_selecionadas.remove(figura)
+                    if type(figura).__name__ in ("Linha", "Rabisco"):
+                        figura.cor_preenchimento = figura.cor_original
+                    else:
+                        figura.cor_borda = figura.cor_original
+                    figura.cor_original = None
+                else:
+                    self.figuras_selecionadas.append(figura)
+                    if type(figura).__name__ in ("Linha", "Rabisco"):
+                            figura.cor_original = figura.cor_preenchimento
+                            figura.cor_preenchimento = "#80ff00"
+                    else:
+                            figura.cor_original = figura.cor_borda
+                            figura.cor_borda = "#80ff00"
                 self.dx_total = 0
                 self.dy_total = 0
                 self.inicio_x = x 
                 self.inicio_y = y
-                if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
-                    self.cor_original = figura.cor_preenchimento
-                    figura.cor_preenchimento = "#80ff00"
-                else:
-                    self.cor_original = figura.cor_borda
-                    figura.cor_borda = "#80ff00"
                 return figura
         return None 
-    def mover_figura(self, x,y):
-        if self.figura_selecionada is None:
-            return
-
-        dx = x - self.inicio_x
-        dy = y - self.inicio_y
-
-        self.dx_total += dx
-        self.dy_total += dy
-        self.figura_selecionada.mover(dx, dy)
-
-        self.inicio_x = x
-        self.inicio_y = y
-    def finalizar_movimento(self):
-        if self.figura_selecionada is None:
-            return None
-
-        if self.dx_total == 0 and self.dy_total == 0:
-            return None
-
-        return ("moveu", self.figura_selecionada, self.dx_total, self.dy_total)
-    def desselecionar(self):
-        if self.figura_selecionada is None:
-            return None
-        if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco") :
-            self.figura_selecionada.cor_preenchimento = self.cor_original
-        else:
-            self.figura_selecionada.cor_borda = self.cor_original
-        self.figura_selecionada = None
-        self.cor_original = None
-    def atualizar_cor(self, cor_borda, cor_preenchimento):
-        if self.figura_selecionada is None:
-            return
-        if type(self.figura_selecionada).__name__ in ("Linha", "Rabisco"):
-            self.figura_selecionada.cor_preenchimento = cor_preenchimento
-            self.cor_original = cor_preenchimento
-        else:
-            self.figura_selecionada.cor_borda = cor_borda
-            self.figura_selecionada.cor_preenchimento = cor_preenchimento
-            self.cor_original = cor_borda

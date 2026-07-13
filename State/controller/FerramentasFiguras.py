@@ -113,10 +113,13 @@ class FerramentaPoligono(Ferramenta):
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None
     def mouse_pressionado(self, event):
-        self.controlador.modelo.desselecionar()
         self.controlador.modelo.identificar_figura(event.x, event.y)
         self.controlador.redesenhar()
-        
+
+    def mouse_ctrl(self,event):
+        self.controlador.modelo.identificar_varias(event.x,event.y)
+        self.controlador.redesenhar()
+
     def mouse_arrastado(self, event):
         self.controlador.modelo.mover_figura(event.x,event.y)
         self.controlador.redesenhar()
