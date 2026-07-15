@@ -4,6 +4,7 @@ from dataclasses import asdict
 from tkinter import filedialog
 from abc import ABC, abstractmethod
 import json
+import math
 
 @dataclass
 class Figuras(ABC):

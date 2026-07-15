@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+import math
 @dataclass
 class Ferramenta():
     controlador : object
@@ -17,7 +17,10 @@ class Ferramenta():
         pass
     def mouse_duplo(self, event):
         pass
-
+    def aumentar_lado(self):
+        pass
+    def diminuir_lado(self):
+        pass
 
 @dataclass
 class FerramentaSimples(Ferramenta):
@@ -109,6 +112,81 @@ class FerramentaPoligono(Ferramenta):
 
     def mouse_solto(self,event):
         pass 
+
+@dataclass
+class FerramentaPoligonoRegular(Ferramenta):
+    classe_figura: type = None
+    lados: int = 3
+    fim_X: int = 0
+    fim_Y: int = 0
+    parou_mover: bool = False
+    desenhando : bool = False
+
+    def mouse_pressionado(self, event):
+        if not self.parou_mover:
+            self.inicio_X = event.x
+            self.inicio_Y = event.y
+            self.desenhando = True
+        else:
+            self.diminuir_lado()
+
+    def mouse_arrastado(self, event):
+        if self.desenhando:
+            self.fim_X = event.x
+            self.fim_Y = event.y
+            self.atualizar_desenho()
+
+    def mouse_solto(self, event):
+        if self.fim_X != 0:
+            self.desenhando = False
+            self.parou_mover = True
+
+    def mouse_duplo(self, event):
+        if self.figura:
+            self.controlador.modelo.adicionar_figura(self.figura)
+            self.controlador.lista_refazer.clear()
+            self.controlador.historico.append(("desenho", self.figura))
+
+            self.figura = None
+            self.fim_X = 0
+            self.fim_Y = 0
+            self.desenhando = True
+            self.parou_mover = False
+            self.lados = 3
+            self.controlador.redesenhar()
+
+    def aumentar_lado(self):
+        if self.parou_mover:
+            self.lados += 1
+            self.atualizar_desenho()
+
+    def diminuir_lado(self):
+        if self.lados > 3:
+            self.lados -= 1
+            self.atualizar_desenho()
+
+    def atualizar_desenho(self):
+        cx = self.inicio_X
+        cy = self.inicio_Y
+        raio = math.hypot(self.fim_X - self.inicio_X, self.fim_Y - self.inicio_Y)
+        if raio < 2:
+            return
+        pontos = []
+        for i in range(self.lados):
+            angulo = (2 * math.pi * i) / self.lados - math.pi / 2
+            x = cx + raio * math.cos(angulo)
+            y = cy + raio * math.sin(angulo)
+            pontos.append(x)
+            pontos.append(y)
+        self.controlador.redesenhar()
+        self.figura = self.classe_figura(
+            self.controlador.visao.cor_borda.get(),
+            self.controlador.visao.espessura.get(),
+            self.controlador.visao.cor_preenchimento.get(),
+            pontos
+        )
+        if self.figura:
+            self.figura.desenhar(self.controlador.visao.canvas)
 @dataclass
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None

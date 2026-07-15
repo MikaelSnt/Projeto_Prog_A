@@ -36,7 +36,8 @@ class Visao:
             "Retângulo",
             "Oval",
             "Círculo",
-            "Polígono"
+            "Polígono",
+            "Polígono regular"
         )
         self.menu_figura.grid(row=0, column=1)
         lbl_figura = Label(self.frame_menu,text = "Figura: ")

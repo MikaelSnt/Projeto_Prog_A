@@ -14,7 +14,8 @@ class Controlador:
                         "Oval" : FerramentaSimples(self,classe_figura= Oval),
                         "Círculo": FerramentaSimples(self,classe_figura= Circulo),
                         "Rabisco": FerramentaRabisco(self, classe_figura=Rabisco),
-                        "Polígono": FerramentaPoligono(self, classe_figura=Poligono)}
+                        "Polígono": FerramentaPoligono(self, classe_figura=Poligono),
+                        "Polígono regular":FerramentaPoligonoRegular(self, classe_figura= Poligono)}
         
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
@@ -41,6 +42,7 @@ class Controlador:
             "<ButtonRelease-1>",
             self.mouse_solto
         )
+        self.visao.canvas.bind("<ButtonPress-3>",self.aumentar_lado)
         self.visao.canvas.bind(
             "<Control-Button-1>",
             self.mouse_ctrl)
@@ -119,7 +121,9 @@ class Controlador:
         self.ferramenta.mouse_duplo(event)
     def mouse_ctrl(self,event):
         self.ferramenta.mouse_ctrl(event)
-        
+    def aumentar_lado(self,event):
+        self.ferramenta.aumentar_lado()
+
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -194,40 +198,53 @@ class Controlador:
             self.historico.append(("desenho", nova_fig))
             self.redesenhar()
     def cima(self,*args):
-        self.figura_selecionada = self.modelo.figura_selecionada
-        i = self.modelo.figuras.index(self.figura_selecionada)
-        figura = self.modelo.figuras.pop(i)
-        self.modelo.figuras.insert(i+1,figura)
+        self.figura_selecionadas = self.modelo.figuras_selecionadas
+        for figura in self.figura_selecionadas:
+            indice = self.modelo.figuras.index(figura)
+            self.modelo.figuras.pop(indice)
+            self.modelo.figuras.insert(indice+1,figura)
         self.redesenhar()
 
     def cima_total(self,*args):
-        self.figura_selecionada = self.modelo.figura_selecionada
-        self.modelo.figuras.remove(self.figura_selecionada)
-        self.modelo.figuras.append(self.figura_selecionada)
+        self.figuras_selecionadas = self.modelo.figuras_selecionadas
+        self.ordem = []
+        for figura in self.figuras_selecionadas:
+            i = self.modelo.figuras.index(figura)
+            self.modelo.figuras.remove(figura)
+            self.ordem.append((i,figura))
+        self.ordem.sort(key=lambda a: a[0])
+        for figura in self.ordem:
+            self.modelo.figuras.append(figura[1])
         self.redesenhar()
 
     def Baixo(self,*args):
-        self.figura_selecionada = self.modelo.figura_selecionada
-        i = self.modelo.figuras.index(self.figura_selecionada)
-        figura = self.modelo.figuras.pop(i)
-        self.modelo.figuras.insert(i-1,figura)
+        self.figura_selecionadas = self.modelo.figuras_selecionadas
+        for figura in self.figura_selecionadas:
+            indice = self.modelo.figuras.index(figura)
+            self.modelo.figuras.pop(indice)
+            self.modelo.figuras.insert(indice-1,figura)
         self.redesenhar()
 
     def Baixo_total(self,*args):
-        self.figura_selecionada = self.modelo.figura_selecionada
-        self.modelo.figuras.remove(self.figura_selecionada)
-        self.modelo.figuras.insert(0,self.figura_selecionada)
+        self.figuras_selecionadas = self.modelo.figuras_selecionadas
+        self.ordem = []
+        for figura in self.figuras_selecionadas:
+            i = self.modelo.figuras.index(figura)
+            self.modelo.figuras.remove(figura)
+            self.ordem.append((i,figura))
+        self.ordem.sort(key=lambda a: a[0])
+        for figura in reversed(self.ordem):
+            self.modelo.figuras.insert(0, figura[1])
         self.redesenhar()
 
     def apagar(self,*args):
-        figura = self.modelo.figura_selecionada
-
-        if figura is None:
-            return
-        
-        self.modelo.figuras.remove(figura)
+        apagados = []
+        for figura in self.modelo.figuras_selecionadas:
+            self.modelo.figuras.remove(figura)
+            apagados.append(figura)
         self.lista_refazer.clear()
-        self.historico.append(("apagado", figura))
+        self.historico.append(("apagado",apagados))
+        apagados.clear()
 
         self.redesenhar()
         
@@ -237,7 +254,6 @@ class Controlador:
 
         historico = self.historico.pop()
         ultima_acao = historico[0]
-        
         if ultima_acao == "moveu":
             figura = historico[1]
             dx = historico[2]
@@ -247,7 +263,7 @@ class Controlador:
         
         elif ultima_acao == "apagado":
             figura = historico[1]
-            self.modelo.figuras.append(figura)
+            self.modelo.figuras.extend(figura)
             
 
         elif ultima_acao == "desenho":
@@ -281,3 +297,4 @@ class Controlador:
 
         self.historico.append(historico)
         self.redesenhar()
+
