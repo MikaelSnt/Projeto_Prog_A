@@ -168,16 +168,16 @@ class FerramentaPoligonoRegular(Ferramenta):
     def atualizar_desenho(self):
         cx = self.inicio_X
         cy = self.inicio_Y
-        raio = math.hypot(self.fim_X - self.inicio_X, self.fim_Y - self.inicio_Y)
-        if raio < 2:
+
+        pontos = self.controlador.modelo.calcular_pontos_poligono(
+            cx,
+            cy,
+            self.fim_X,
+            self.fim_Y,
+            self.lados
+        )
+        if not pontos:
             return
-        pontos = []
-        for i in range(self.lados):
-            angulo = (2 * math.pi * i) / self.lados - math.pi / 2
-            x = cx + raio * math.cos(angulo)
-            y = cy + raio * math.sin(angulo)
-            pontos.append(x)
-            pontos.append(y)
         self.controlador.redesenhar()
         self.figura = self.classe_figura(
             self.controlador.visao.cor_borda.get(),
@@ -185,8 +185,8 @@ class FerramentaPoligonoRegular(Ferramenta):
             self.controlador.visao.cor_preenchimento.get(),
             pontos
         )
-        if self.figura:
-            self.figura.desenhar(self.controlador.visao.canvas)
+        self.figura.desenhar(self.controlador.visao.canvas)
+    
 @dataclass
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None

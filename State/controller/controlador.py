@@ -244,7 +244,6 @@ class Controlador:
             apagados.append(figura)
         self.lista_refazer.clear()
         self.historico.append(("apagado",apagados))
-        apagados.clear()
 
         self.redesenhar()
         
@@ -255,12 +254,13 @@ class Controlador:
         historico = self.historico.pop()
         ultima_acao = historico[0]
         if ultima_acao == "moveu":
-            figura = historico[1]
+            figuras = historico[1]
             dx = historico[2]
             dy = historico[3]
-            figura.mover(-dx,-dy)
+           
+            for figura in figuras:
+                figura.mover(-dx, -dy)
          
-        
         elif ultima_acao == "apagado":
             figura = historico[1]
             self.modelo.figuras.extend(figura)
@@ -273,28 +273,32 @@ class Controlador:
         self.lista_refazer.append(historico)    
         self.redesenhar()
 
-    def refazer(self, *agrs):
+    def refazer(self, *args):
         if not self.lista_refazer:
             return
-        
+
         historico = self.lista_refazer.pop()
         ultima_acao = historico[0]
-        
+
         if ultima_acao == "desenho":
             figura = historico[1]
             self.modelo.figuras.append(figura)
-        
+
         elif ultima_acao == "apagado":
-            figura = historico[1]
-            if figura in self.modelo.obter_figuras():
-                self.modelo.figuras.remove(figura)
-        
+            figuras = historico[1]
+            for figura in figuras:
+                if figura in self.modelo.obter_figuras():
+                    self.modelo.figuras.remove(figura)
+
         elif ultima_acao == "moveu":
-            figura = historico[1]
+            figuras = historico[1]
             dx = historico[2]
             dy = historico[3]
-            figura.mover(dx, dy)
+
+            for figura in figuras:
+                figura.mover(dx, dy)
 
         self.historico.append(historico)
         self.redesenhar()
+       
 

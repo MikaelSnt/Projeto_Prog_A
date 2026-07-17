@@ -294,11 +294,16 @@ class Modelo:
     def finalizar_movimento(self):
         if not self.figuras_selecionadas:
             return None
-        for figura in self.figuras_selecionadas:
-            if self.dx_total == 0 and self.dy_total == 0:
-                return None
 
-            return ("moveu", figura, self.dx_total, self.dy_total)
+        if self.dx_total == 0 and self.dy_total == 0:
+            return None
+
+        return (
+            "moveu",
+            list(self.figuras_selecionadas),
+            self.dx_total,
+            self.dy_total
+        )
 
     def desselecionar(self):
         for figura in self.figuras_selecionadas:
@@ -345,3 +350,22 @@ class Modelo:
                 self.inicio_y = y
                 return figura
         return None 
+
+    def calcular_pontos_poligono(self, cx, cy, mx, my, lados):
+
+        raio = math.hypot(mx - cx, my - cy)
+        if raio < 2:
+            return []
+        angulo_inicial = math.atan2(my - cy, mx - cx)
+
+        pontos = []
+
+        for i in range(lados):
+            angulo = angulo_inicial + (2 * math.pi * i) / lados
+
+            x = cx + raio * math.cos(angulo)
+            y = cy + raio * math.sin(angulo)
+
+            pontos.append(x)
+            pontos.append(y)
+        return pontos
