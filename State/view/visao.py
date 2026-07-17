@@ -100,7 +100,8 @@ class Visao:
         self.bt_abrir.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         self.bt_salvar =tk.Button(self.frame_menu, text="Salvar Desenho")
         self.bt_salvar.grid(row=1, column=0, sticky="ew", padx=5)
-
+        self.bt_agrupar = tk.Button(self.frame_menu, text="Agrupar_fig")
+        self.bt_agrupar.grid(row=3, column=7, sticky="ew", padx=5, pady=5)
         self.canvas = Canvas(
             self.janela,
             bg="white",

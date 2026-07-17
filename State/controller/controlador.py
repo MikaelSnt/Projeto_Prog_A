@@ -19,6 +19,7 @@ class Controlador:
         
         self.ferramenta = self.ferramentas["Rabisco"]
         self.rabisco_atual = None
+        self.figuras_copiadas = []
         self.lista_refazer = []
         self.lista_apagados = []
         self.historico = []
@@ -42,7 +43,11 @@ class Controlador:
             "<ButtonRelease-1>",
             self.mouse_solto
         )
-        self.visao.canvas.bind("<ButtonPress-3>",self.aumentar_lado)
+        
+        self.visao.canvas.bind(
+            "<ButtonPress-3>",
+            self.aumentar_lado
+        )
         self.visao.canvas.bind(
             "<Control-Button-1>",
             self.mouse_ctrl)
@@ -108,6 +113,9 @@ class Controlador:
         self.visao.btn_limpar.config(
             command=self.limpar
         )
+        self.visao.bt_agrupar.config(
+            command=self.Agrupar
+        )
     def mouse_pressionado(self, event):
         self.ferramenta.mouse_pressionado(event)
 
@@ -123,7 +131,7 @@ class Controlador:
         self.ferramenta.mouse_ctrl(event)
     def aumentar_lado(self,event):
         self.ferramenta.aumentar_lado()
-
+    
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -178,25 +186,29 @@ class Controlador:
     def abrir(self):
         if self.modelo.abrir_projeto():
             self.redesenhar()
+    def Agrupar(self):
+        self.modelo.agrupar_figuras()
+        self.redesenhar()
+    def copiar(self, *args):
 
-    def copiar(self, *agrs):
-        if self.modelo.figura_selecionada is None:
+        if not self.modelo.figuras_selecionadas:
             return
-
-        if self.modelo.figura_selecionada:
-            self.figura_copiada = copy.deepcopy(self.modelo.figura_selecionada)
-        if type(self.figura_copiada).__name__ in ("Linha", "Rabisco"):
-            self.figura_copiada.cor_preenchimento = self.modelo.cor_original
-        else:
-            self.figura_copiada.cor_borda = self.modelo.cor_original
+        self.figuras_copiadas = copy.deepcopy(
+            self.modelo.figuras_selecionadas
+    )
     def colar(self, *args):
-        if self.figura_copiada:
-            nova_fig = copy.deepcopy(self.figura_copiada)
-
-            self.modelo.adicionar_figura(nova_fig)
-            self.lista_refazer.clear()
-            self.historico.append(("desenho", nova_fig))
-            self.redesenhar()
+        if not self.figuras_copiadas:
+            return
+        
+        novas = copy.deepcopy(self.figuras_copiadas)
+        
+        for figura in novas:
+            figura.mover(20,20)
+            self.modelo.adicionar_figura(figura)
+            self.historico.append(("desenho", figura))
+        
+        self.lista_refazer.clear()
+        self.redesenhar()
     def cima(self,*args):
         self.figura_selecionadas = self.modelo.figuras_selecionadas
         for figura in self.figura_selecionadas:

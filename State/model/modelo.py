@@ -11,6 +11,8 @@ class Figuras(ABC):
     cor_borda : str
     espessura : float
     cor_preenchimento : str 
+    def __post_init__(self):
+        self.cor_original = self.cor_borda
     @abstractmethod
     def identificar(self,x,y):
         pass
@@ -20,7 +22,11 @@ class Figuras(ABC):
         self.y1 += dy
         self.y2 += dy
         self.x2 += dx
+    def selecionar(self):
+        self.cor_borda = "#80ff00"
 
+    def desselecionar(self):
+        self.cor_borda = self.cor_original
 @dataclass
 class Rabisco(Figuras):
     pontos : list
@@ -38,7 +44,23 @@ class Rabisco(Figuras):
 
             if self.calcular_distancia(x, y, x1, y1, x2, y2):
                 return True
-
+    def limites(self):
+        menor_x = self.pontos[0]
+        maior_x = self.pontos[0]
+        menor_y = self.pontos[1]
+        maior_y = self.pontos[1]
+        for i in range(2, len(self.pontos), 2):
+            x = self.pontos[i]
+            y = self.pontos[i + 1]
+            if x < menor_x:
+                menor_x = x
+            if x > maior_x:
+                maior_x = x
+            if y < menor_y:
+                menor_y = y
+            if y > maior_y:
+                maior_y = y
+        return menor_x, menor_y, maior_x, maior_y
     def calcular_distancia(self, x, y, x1, y1, x2, y2):         
         dx = x2 - x1
         dy = y2 - y1
@@ -57,6 +79,11 @@ class Rabisco(Figuras):
         for i in range(0, len(self.pontos), 2):
             self.pontos[i] += dx
             self.pontos[i + 1] += dy
+    def selecionar(self):
+        self.cor_preenchimento = "#80ff00"
+
+    def desselecionar(self):
+        self.cor_preenchimento = self.cor_original
 @dataclass
 class Linha(Figuras):
     x1 : int
@@ -85,7 +112,18 @@ class Linha(Figuras):
 
         distancia = (((ponto_x - fx) ** 2 + (ponto_y - fy) ** 2)) ** 0.5
         return distancia <= 15
+    def limites(self):
+        return (
+            min(self.x1, self.x2),
+            min(self.y1, self.y2),
+            max(self.x1, self.x2),
+            max(self.y1, self.y2)
+        )
+    def selecionar(self):
+        self.cor_preenchimento = "#80ff00"
 
+    def desselecionar(self):
+        self.cor_preenchimento = self.cor_original
 @dataclass
 class Retangulo(Figuras):
     x1 : int
@@ -98,7 +136,13 @@ class Retangulo(Figuras):
         maior_x, menor_x = max(self.x1, self.x2), min(self.x1, self.x2)
         maior_y, menor_y = max(self.y1, self.y2), min(self.y1, self.y2)
         return menor_x <= x <= maior_x and menor_y <= y <= maior_y
-
+    def limites(self):
+        return (
+            min(self.x1, self.x2),
+            min(self.y1, self.y2),
+            max(self.x1, self.x2),
+            max(self.y1, self.y2)
+        )
 @dataclass
 class Oval(Figuras):
     x1 : int
@@ -114,7 +158,14 @@ class Oval(Figuras):
         b = (self.y2 - self.y1)/2
         ponto = ((x - Centro_X)**2 / (a ** 2)) + ((y - Centro_Y)**2 / (b ** 2))
         return ponto  <= 1
+    def limites(self):
+        menor_x = min(self.x1, self.x2)
+        maior_x = max(self.x1, self.x2)
 
+        menor_y = min(self.y1, self.y2)
+        maior_y = max(self.y1, self.y2)
+
+        return menor_x, menor_y, maior_x, maior_y
 @dataclass
 class Circulo(Figuras):
     x1 : int
@@ -127,7 +178,13 @@ class Circulo(Figuras):
     def identificar(self,x,y):
         centro_geral = ((x - self.x1)**2 + (y - self.y1)**2)
         return centro_geral <= self.raio**2
-
+    def limites(self):
+        return (
+            self.x1 - self.raio,
+            self.y1 - self.raio,
+            self.x1 + self.raio,
+            self.y1 + self.raio
+        )
 @dataclass
 class Poligono(Figuras):
     pontos: list
@@ -159,6 +216,71 @@ class Poligono(Figuras):
         for i in range(0, len(self.pontos), 2):
             self.pontos[i] += dx
             self.pontos[i + 1] += dy
+    def limites(self):
+        menor_x = self.pontos[0]
+        maior_x = self.pontos[0]
+        menor_y = self.pontos[1]
+        maior_y = self.pontos[1]
+        for i in range(2, len(self.pontos), 2):
+            x = self.pontos[i]
+            y = self.pontos[i + 1]
+            if x < menor_x:
+                menor_x = x
+            if x > maior_x:
+                maior_x = x
+            if y < menor_y:
+                menor_y = y
+            if y > maior_y:
+                maior_y = y
+        return menor_x, menor_y, maior_x, maior_y
+@dataclass
+class FiguraComposta(Figuras):
+    figuras: list
+
+    def desenhar(self, canvas):
+        for figura in self.figuras:
+            figura.desenhar(canvas)
+    def mover(self, dx, dy):
+        for figura in self.figuras:
+            figura.mover(dx, dy)
+    
+    def identificar(self, x, y):
+        for figura in reversed(self.figuras):
+            if figura.identificar(x, y):
+                return True
+        return False 
+    
+    def selecionar(self):
+        for figura in self.figuras:
+            figura.selecionar()
+
+    def desselecionar(self):
+        for figura in self.figuras:
+            figura.desselecionar()
+    def limites(self):
+
+        menor_x = None
+        menor_y = None
+        maior_x = None
+        maior_y = None
+
+        for figura in self.figuras:
+
+            x1, y1, x2, y2 = figura.limites()
+
+            if menor_x is None:
+                menor_x = x1
+                menor_y = y1
+                maior_x = x2
+                maior_y = y2
+            else:
+                menor_x = min(menor_x, x1)
+                menor_y = min(menor_y, y1)
+                maior_x = max(maior_x, x2)
+                maior_y = max(maior_y, y2)
+
+        return menor_x, menor_y, maior_x, maior_y
+    
 class Modelo:
     def __init__(self):    
         self.figuras = []
@@ -262,14 +384,12 @@ class Modelo:
                     self.dx_total = 0
                     self.dy_total = 0
                     return figura
+                
                 self.desselecionar()
                 self.figuras_selecionadas.append(figura)
-                if type(figura).__name__ in ("Linha", "Rabisco"):
-                    figura.cor_original = figura.cor_preenchimento
-                    figura.cor_preenchimento = "#80ff00"
-                else:
-                    figura.cor_original = figura.cor_borda
-                    figura.cor_borda = "#80ff00"
+
+                figura.selecionar()
+                
                 self.inicio_x = x
                 self.inicio_y = y
                 self.dx_total = 0
@@ -306,13 +426,11 @@ class Modelo:
         )
 
     def desselecionar(self):
-        for figura in self.figuras_selecionadas:
-            if type(figura).__name__ in ("Linha", "Rabisco"):
-                figura.cor_preenchimento = figura.cor_original
-            else:
-                figura.cor_borda = figura.cor_original
-            figura.cor_original = None
+        for figura in self.figuras:
+            figura.desselecionar()
+
         self.figuras_selecionadas.clear()
+        self.figura_selecionada = None
     def atualizar_cor(self, cor_borda, cor_preenchimento):
         if not self.figuras_selecionadas:
             return
@@ -330,20 +448,12 @@ class Modelo:
         for figura in reversed( self.figuras): 
             if figura.identificar(x,y): 
                 if figura in self.figuras_selecionadas:
-                    self.figuras_selecionadas.remove(figura)
-                    if type(figura).__name__ in ("Linha", "Rabisco"):
-                        figura.cor_preenchimento = figura.cor_original
-                    else:
-                        figura.cor_borda = figura.cor_original
-                    figura.cor_original = None
+                    figura.desselecionar()
+                    self.figuras_selecionadas.remove(figura)    
                 else:
+                    figura.selecionar()
                     self.figuras_selecionadas.append(figura)
-                    if type(figura).__name__ in ("Linha", "Rabisco"):
-                            figura.cor_original = figura.cor_preenchimento
-                            figura.cor_preenchimento = "#80ff00"
-                    else:
-                            figura.cor_original = figura.cor_borda
-                            figura.cor_borda = "#80ff00"
+                
                 self.dx_total = 0
                 self.dy_total = 0
                 self.inicio_x = x 
@@ -369,3 +479,35 @@ class Modelo:
             pontos.append(x)
             pontos.append(y)
         return pontos
+    
+    def retangulo_de_selecao(self, x1 , y1, x2, y2, canvas):
+        canvas.create_rectangle(x1, y1, x2, y2,outline="black",dash=(4,4))
+    
+    def selecionar_retangulo(self, x1, y1, x2, y2):
+
+        menor_x = min(x1, x2)
+        maior_x = max(x1, x2)
+        menor_y = min(y1, y2)
+        maior_y = max(y1, y2)
+        for figura in self.figuras:
+            fx1, fy1, fx2, fy2 = figura.limites()
+            if (
+                fx1 >= menor_x and
+                fy1 >= menor_y and
+                fx2 <= maior_x and
+                fy2 <= maior_y
+            ):
+                figura.selecionar()
+                self.figuras_selecionadas.append(figura)
+    def agrupar_figuras(self):
+        if len(self.figuras_selecionadas) < 2:
+            return
+
+        grupo_de_figuras = FiguraComposta(cor_borda="", espessura=1, cor_preenchimento="", figuras=self.figuras_selecionadas.copy() )
+
+        for figura in self.figuras_selecionadas:
+            self.figuras.remove(figura)
+        
+        self.figuras.append(grupo_de_figuras)
+        self.figuras_selecionadas = [grupo_de_figuras]
+        grupo_de_figuras.selecionar()

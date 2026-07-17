@@ -191,6 +191,8 @@ class FerramentaPoligonoRegular(Ferramenta):
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None
     def mouse_pressionado(self, event):
+        self.inicio_X = event.x
+        self.inicio_Y = event.y
         self.controlador.modelo.identificar_figura(event.x, event.y)
         self.controlador.redesenhar()
 
@@ -199,9 +201,11 @@ class FerramentaSelecao(Ferramenta):
         self.controlador.redesenhar()
 
     def mouse_arrastado(self, event):
-        self.controlador.modelo.mover_figura(event.x,event.y)
+        if self.controlador.modelo.figuras_selecionadas:
+            self.controlador.modelo.mover_figura(event.x,event.y)
         self.controlador.redesenhar()
-    
+        if not self.controlador.modelo.figuras_selecionadas:
+            self.controlador.modelo.retangulo_de_selecao(self.inicio_X, self.inicio_Y, event.x, event.y, self.controlador.visao.canvas)
     def mouse_solto(self, event):
         ultima_acao = self.controlador.modelo.finalizar_movimento()
         if ultima_acao:
@@ -209,6 +213,8 @@ class FerramentaSelecao(Ferramenta):
                 self.controlador.historico.append(ultima_acao)
         self.controlador.modelo.dx_total = 0
         self.controlador.modelo.dy_total = 0
+        self.controlador.modelo.selecionar_retangulo(self.inicio_X, self.inicio_Y, event.x, event.y)
+        self.controlador.redesenhar()        
     def atualizar_cor(self):
         self.controlador.modelo.atualizar_cor(self.controlador.visao.cor_borda.get(), self.controlador.visao.cor_preenchimento.get())
  
