@@ -21,7 +21,10 @@ class Ferramenta():
         pass
     def diminuir_lado(self):
         pass
-
+    def mouse_movido(self,event):
+        pass
+    def mouse_ctrl(self,event):
+        pass
 @dataclass
 class FerramentaSimples(Ferramenta):
     classe_figura : type = None 
@@ -117,13 +120,14 @@ class FerramentaPoligono(Ferramenta):
 class FerramentaPoligonoRegular(Ferramenta):
     classe_figura: type = None
     lados: int = 3
+    inicio_X : int = None
+    inicio_Y : int = None
     fim_X: int = 0
     fim_Y: int = 0
-    parou_mover: bool = False
     desenhando : bool = False
 
     def mouse_pressionado(self, event):
-        if not self.parou_mover:
+        if self.inicio_X is None and self.inicio_Y is None:
             self.inicio_X = event.x
             self.inicio_Y = event.y
             self.desenhando = True
@@ -135,12 +139,14 @@ class FerramentaPoligonoRegular(Ferramenta):
             self.fim_X = event.x
             self.fim_Y = event.y
             self.atualizar_desenho()
+    def mouse_movido(self, event):
+        if self.desenhando:
+            self.fim_X = event.x
+            self.fim_Y = event.y
+            self.atualizar_desenho()
 
     def mouse_solto(self, event):
-        if self.fim_X != 0:
-            self.desenhando = False
-            self.parou_mover = True
-
+        pass
     def mouse_duplo(self, event):
         if self.figura:
             self.controlador.modelo.adicionar_figura(self.figura)
@@ -148,15 +154,15 @@ class FerramentaPoligonoRegular(Ferramenta):
             self.controlador.historico.append(("desenho", self.figura))
 
             self.figura = None
+            self.inicio_X = None
+            self.inicio_Y = None
             self.fim_X = 0
             self.fim_Y = 0
-            self.desenhando = True
-            self.parou_mover = False
+            self.desenhando = False
             self.lados = 3
             self.controlador.redesenhar()
 
     def aumentar_lado(self):
-        if self.parou_mover:
             self.lados += 1
             self.atualizar_desenho()
 
@@ -190,30 +196,40 @@ class FerramentaPoligonoRegular(Ferramenta):
 @dataclass
 class FerramentaSelecao(Ferramenta):
     classe_figura: type = None
+    selecionando_area: bool = False
     def mouse_pressionado(self, event):
         self.inicio_X = event.x
         self.inicio_Y = event.y
-        self.controlador.modelo.identificar_figura(event.x, event.y)
+        figura = self.controlador.modelo.identificar_figura(event.x, event.y)
+        if figura:
+            self.selecionando_area = False
+        else:
+            self.selecionando_area = True
         self.controlador.redesenhar()
-
     def mouse_ctrl(self,event):
         self.controlador.modelo.identificar_varias(event.x,event.y)
         self.controlador.redesenhar()
 
     def mouse_arrastado(self, event):
-        if self.controlador.modelo.figuras_selecionadas:
-            self.controlador.modelo.mover_figura(event.x,event.y)
-        self.controlador.redesenhar()
-        if not self.controlador.modelo.figuras_selecionadas:
-            self.controlador.modelo.retangulo_de_selecao(self.inicio_X, self.inicio_Y, event.x, event.y, self.controlador.visao.canvas)
+        if not self.selecionando_area:
+            if self.controlador.modelo.figuras_selecionadas:
+                self.controlador.modelo.mover_figura(event.x,event.y)
+            self.controlador.redesenhar()
+        else:
+            if not self.controlador.modelo.figuras_selecionadas:
+                self.controlador.redesenhar()
+                self.controlador.modelo.retangulo_de_selecao(self.inicio_X, self.inicio_Y, event.x, event.y, self.controlador.visao.canvas)
     def mouse_solto(self, event):
-        ultima_acao = self.controlador.modelo.finalizar_movimento()
-        if ultima_acao:
-                self.controlador.lista_refazer.clear()
-                self.controlador.historico.append(ultima_acao)
-        self.controlador.modelo.dx_total = 0
-        self.controlador.modelo.dy_total = 0
-        self.controlador.modelo.selecionar_retangulo(self.inicio_X, self.inicio_Y, event.x, event.y)
+        if not self.selecionando_area:
+            ultima_acao = self.controlador.modelo.finalizar_movimento()
+            if ultima_acao:
+                    self.controlador.lista_refazer.clear()
+                    self.controlador.historico.append(ultima_acao)
+            self.controlador.modelo.dx_total = 0
+            self.controlador.modelo.dy_total = 0
+        else:
+            self.controlador.modelo.selecionar_retangulo(self.inicio_X, self.inicio_Y, event.x, event.y)
+        self.selecionando_area = False
         self.controlador.redesenhar()        
     def atualizar_cor(self):
         self.controlador.modelo.atualizar_cor(self.controlador.visao.cor_borda.get(), self.controlador.visao.cor_preenchimento.get())

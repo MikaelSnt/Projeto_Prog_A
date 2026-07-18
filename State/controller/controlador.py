@@ -49,6 +49,10 @@ class Controlador:
             self.aumentar_lado
         )
         self.visao.canvas.bind(
+            "<Motion>", 
+            self.mouse_movido
+        )
+        self.visao.canvas.bind(
             "<Control-Button-1>",
             self.mouse_ctrl)
         self.visao.canvas.bind_all(
@@ -131,7 +135,8 @@ class Controlador:
         self.ferramenta.mouse_ctrl(event)
     def aumentar_lado(self,event):
         self.ferramenta.aumentar_lado()
-    
+    def mouse_movido(self,event):
+        self.ferramenta.mouse_movido(event)
     def mudar_ferramenta(self, *args):
 
         self.ferramenta = self.ferramentas.get(self.visao.tipo_figura.get())
@@ -184,18 +189,21 @@ class Controlador:
         self.modelo.salvar_projeto()
     
     def abrir(self):
-        if self.modelo.abrir_projeto():
-            self.redesenhar()
+        self.modelo.abrir_projeto()
+        self.redesenhar()
+        
     def Agrupar(self):
         self.modelo.agrupar_figuras()
         self.redesenhar()
-    def copiar(self, *args):
 
+    def copiar(self, *args):
         if not self.modelo.figuras_selecionadas:
             return
-        self.figuras_copiadas = copy.deepcopy(
-            self.modelo.figuras_selecionadas
-    )
+
+        self.figuras_copiadas = copy.deepcopy(self.modelo.figuras_selecionadas)
+
+        for figura in self.figuras_copiadas:
+            figura.desselecionar()
     def colar(self, *args):
         if not self.figuras_copiadas:
             return

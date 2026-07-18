@@ -27,6 +27,10 @@ class Figuras(ABC):
 
     def desselecionar(self):
         self.cor_borda = self.cor_original
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        self.cor_borda = cor_borda
+        self.cor_preenchimento = cor_preenchimento
+        self.cor_original = cor_borda
 @dataclass
 class Rabisco(Figuras):
     pontos : list
@@ -84,6 +88,9 @@ class Rabisco(Figuras):
 
     def desselecionar(self):
         self.cor_preenchimento = self.cor_original
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        self.cor_preenchimento = cor_preenchimento
+        self.cor_original = cor_preenchimento
 @dataclass
 class Linha(Figuras):
     x1 : int
@@ -124,6 +131,9 @@ class Linha(Figuras):
 
     def desselecionar(self):
         self.cor_preenchimento = self.cor_original
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        self.cor_preenchimento = cor_preenchimento
+        self.cor_original = cor_preenchimento
 @dataclass
 class Retangulo(Figuras):
     x1 : int
@@ -257,6 +267,9 @@ class FiguraComposta(Figuras):
     def desselecionar(self):
         for figura in self.figuras:
             figura.desselecionar()
+    def atualizar_cor(self, cor_borda, cor_preenchimento):
+        for figura in self.figuras:
+            figura.atualizar_cor(cor_borda, cor_preenchimento)
     def limites(self):
 
         menor_x = None
@@ -314,64 +327,112 @@ class Modelo:
     
     def salvar_projeto(self):
         if not self.figuras:
-                return
-
+            return
         caminho = filedialog.asksaveasfilename(
-                defaultextension=".json",
-             filetypes=(("Arquivos de Desenho (*.json)", "*.json"), ("Todos os Arquivos", "*.*")),
-                title="Escolha onde salvar seu desenho"
-            )
-
+            defaultextension=".json",
+            filetypes=(("Arquivos de Desenho (*.json)", "*.json"),
+                    ("Todos os Arquivos", "*.*")),
+            title="Escolha onde salvar seu desenho"
+        )
         if caminho:
             try:
                 lista_convertida = []
+
                 for fig in self.obter_figuras():
-                    atributos = asdict(fig) 
-                    nome_classe = fig.__class__.__name__
-            
-                    lista_convertida.append({
-                        "tipo_classe": nome_classe,
-                        "atributos": atributos
-                    })
+
+                    if isinstance(fig, FiguraComposta):
+
+                        figuras_internas = []
+
+                        for f in fig.figuras:
+                            figuras_internas.append({
+                                "tipo_classe": f.__class__.__name__,
+                                "atributos": asdict(f)
+                            })
+
+                        lista_convertida.append({
+                            "tipo_classe": "FiguraComposta",
+                            "atributos": {
+                                "cor_borda": fig.cor_borda,
+                                "espessura": fig.espessura,
+                                "cor_preenchimento": fig.cor_preenchimento,
+                                "figuras": figuras_internas
+                            }
+                        })
+
+                    else:
+                        lista_convertida.append({
+                            "tipo_classe": fig.__class__.__name__,
+                            "atributos": asdict(fig)
+                        })
 
                 with open(caminho, "w", encoding="utf-8") as arquivo:
                     json.dump(lista_convertida, arquivo, indent=4)
-                    
             except Exception as erro:
-                print("Erro quando ta Salvando o projeto:", erro)
+                print("Erro quando ta salvando:", erro)
 
     def abrir_projeto(self):
         caminho = filedialog.askopenfilename(
-            filetypes=(("Arquivos de Desenho (*.json)", "*.json"), ("Todos os Arquivos", "*.*")),
+            filetypes=(("Arquivos de Desenho (*.json)", "*.json"),
+                    ("Todos os Arquivos", "*.*")),
             title="Selecione o arquivo do seu desenho"
         )
-        
+
         if caminho:
             try:
                 with open(caminho, "r", encoding="utf-8") as arquivo:
                     dados_carregados = json.load(arquivo)
+
                 novas_figuras = []
+
                 classes_permitidas = {
                     "Linha": Linha,
                     "Retangulo": Retangulo,
                     "Oval": Oval,
                     "Circulo": Circulo,
                     "Rabisco": Rabisco,
-                    "Poligono": Poligono
+                    "Poligono": Poligono,
+                    "FiguraComposta": FiguraComposta
                 }
-        
+
                 for item in dados_carregados:
+
                     nome_classe = item["tipo_classe"]
                     atributos = item["atributos"]
-                    
-                    classe_figura = classes_permitidas.get(nome_classe)
-                    
-                    if classe_figura:
-                       
-                        objeto_recriado = classe_figura(**atributos)
+
+                    if nome_classe == "FiguraComposta":
+
+                        figuras_recriadas = []
+
+                        for fig in atributos["figuras"]:
+
+                            tipo = fig["tipo_classe"]
+                            dados = fig["atributos"]
+
+                            classe = classes_permitidas.get(tipo)
+
+                            if classe:
+                                figuras_recriadas.append(classe(**dados))
+
+                        objeto_recriado = FiguraComposta(
+                            atributos["cor_borda"],
+                            atributos["espessura"],
+                            atributos["cor_preenchimento"],
+                            figuras_recriadas
+                        )
+
                         novas_figuras.append(objeto_recriado)
-                
+
+                    else:
+
+                        classe_figura = classes_permitidas.get(nome_classe)
+
+                        if classe_figura:
+                            objeto_recriado = classe_figura(**atributos)
+                            novas_figuras.append(objeto_recriado)
+
                 self.figuras = novas_figuras
+
             except Exception as erro:
                 print("Erro quando ta abrindo o projeto:", erro)
 
@@ -432,16 +493,8 @@ class Modelo:
         self.figuras_selecionadas.clear()
         self.figura_selecionada = None
     def atualizar_cor(self, cor_borda, cor_preenchimento):
-        if not self.figuras_selecionadas:
-            return
         for figura in self.figuras_selecionadas:
-            if type(figura).__name__ in ("Linha", "Rabisco"):
-                figura.cor_preenchimento = cor_preenchimento
-                figura.cor_original = cor_preenchimento
-            else:
-                figura.cor_borda = cor_borda
-                figura.cor_preenchimento = cor_preenchimento
-                figura.cor_original = cor_borda
+            figura.atualizar_cor(cor_borda, cor_preenchimento)
 
     def identificar_varias(self,x,y):
 
@@ -481,24 +534,23 @@ class Modelo:
         return pontos
     
     def retangulo_de_selecao(self, x1 , y1, x2, y2, canvas):
-        canvas.create_rectangle(x1, y1, x2, y2,outline="black",dash=(4,4))
+            canvas.create_rectangle(x1, y1, x2, y2,outline="black",dash=(4,4))
     
     def selecionar_retangulo(self, x1, y1, x2, y2):
-
-        menor_x = min(x1, x2)
-        maior_x = max(x1, x2)
-        menor_y = min(y1, y2)
-        maior_y = max(y1, y2)
-        for figura in self.figuras:
-            fx1, fy1, fx2, fy2 = figura.limites()
-            if (
-                fx1 >= menor_x and
-                fy1 >= menor_y and
-                fx2 <= maior_x and
-                fy2 <= maior_y
-            ):
-                figura.selecionar()
-                self.figuras_selecionadas.append(figura)
+            menor_x = min(x1, x2)
+            maior_x = max(x1, x2)
+            menor_y = min(y1, y2)
+            maior_y = max(y1, y2)
+            for figura in self.figuras:
+                fx1, fy1, fx2, fy2 = figura.limites()
+                if (
+                    fx1 >= menor_x and
+                    fy1 >= menor_y and
+                    fx2 <= maior_x and
+                    fy2 <= maior_y
+                ):
+                    figura.selecionar()
+                    self.figuras_selecionadas.append(figura)
     def agrupar_figuras(self):
         if len(self.figuras_selecionadas) < 2:
             return
